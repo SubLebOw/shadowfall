@@ -168,30 +168,38 @@ function makeItem(il,mf=0,forced){
   it.value=Math.round((5+il*3)*(1+r*r*1.5));return it;}
 // ---------- player ----------
 const P={lvl:1,xp:0,str:15,dex:25,vit:15,ene:12,pts:0,sp:1,gold:0,hp:1,mp:1,pos:new THREE.Vector3(),target:null,atkTarget:null,atkCd:0,attacks:0,
- eq:{},inv:[],belt:[],skills:{shuriken:1,step:1,fifth:1,clone:1,smoke:0,venom:0,evasion:0,flurry:0,mastery:0},cds:{},clones:[],cloneT:0,dead:false};
+ eq:{},inv:[],belt:[],skills:{shuriken:1,step:1,fifth:1,clone:1,smoke:0,venom:0,evasion:0,flurry:0,mastery:0,storm:0,fury:0,umbral:0,legion:0},cds:{},clones:[],cloneT:0,dead:false};
 P.belt=['hp','hp','mp','mp'];P.vel=new THREE.Vector3();
 const SK={
- shuriken:{n:'Shuriken Spread',ic:'✴️',key:'J',t:1,d:r=>`Throw 3 shurikens in a spread. +${15*r}% damage.`},
- step:{n:'Shadow Step',ic:'🌑',key:'K',t:1,mana:8,cd:r=>Math.max(1.5,5-r*0.3),d:r=>`Teleport behind the nearest enemy and strike for ${150+40*r}% damage.`},
- fifth:{n:'Fifth Star',ic:'⭐',t:1,pass:1,d:r=>`Passive: every 5th attack fires ${r} extra shuriken(s).`},
- smoke:{n:'Smoke Bomb',ic:'💨',key:'U',t:2,mana:12,cd:r=>8,req:'step',d:r=>`Blinds & stuns nearby enemies for ${(1.5+r*0.25).toFixed(1)}s and deals ${80+30*r}% damage.`},
- venom:{n:'Venom Edge',ic:'🧪',t:2,pass:1,req:'shuriken',d:r=>`Passive: hits poison for ${10*r}% weapon damage per second (3s).`},
- evasion:{n:'Evasion',ic:'🌀',t:2,pass:1,req:'fifth',d:r=>`Passive: ${Math.min(40,4*r)}% chance to dodge attacks.`},
- flurry:{n:'Blade Flurry',ic:'🌪️',key:'O',t:3,mana:15,cd:r=>3,req:'smoke',d:r=>`Spin, slashing all nearby enemies for ${200+50*r}% damage.`},
- clone:{n:'Shadow Clone',ic:'👥',key:'L',t:1,mana:25,cd:r=>Math.max(15,30-r),d:r=>`Summon two shadow ninjas for 10s that hunt the nearest enemies on their own, dealing ${50+10*r}% damage.`},
- mastery:{n:'Shadow Mastery',ic:'🗡️',t:3,pass:1,req:'clone',d:r=>`Passive: +${3*r}% critical chance and +${5*r}% damage.`}};
-const TIERLVL={1:1,2:6,3:12};
+ shuriken:{n:'Shuriken Spread',ic:'✴️',key:'J',p:0,t:1,d:r=>`Throw 3 shurikens in a spread for ${100+15*r}% damage.`},
+ fifth:{n:'Fifth Star',ic:'⭐',p:0,t:2,pass:1,req:'shuriken',d:r=>`Every 5th attack fires ${r} extra shuriken(s).`},
+ venom:{n:'Venom Edge',ic:'🧪',p:0,t:3,pass:1,req:'fifth',d:r=>`Hits poison for ${10*r}% weapon damage/s (3s).`},
+ storm:{n:'Steel Storm',ic:'🌀',p:0,t:4,pass:1,req:'venom',d:r=>`+${3*r}% attack speed, +${4*r}% shuriken damage.`},
+ step:{n:'Shadow Step',ic:'🌑',key:'K',p:1,t:1,mana:8,cd:r=>Math.max(1.5,5-r*0.3),d:r=>`Teleport behind an enemy, strike for ${150+40*r}% (cd ${Math.max(1.5,5-r*0.3).toFixed(1)}s).`},
+ evasion:{n:'Evasion',ic:'💨',p:1,t:2,pass:1,req:'step',d:r=>`${Math.min(40,4*r)}% chance to dodge attacks.`},
+ smoke:{n:'Smoke Bomb',ic:'☁️',key:'U',p:1,t:2,mana:12,cd:r=>8,req:'step',d:r=>`Stun nearby foes ${(1.5+r*0.25).toFixed(1)}s, ${80+30*r}% damage.`},
+ flurry:{n:'Blade Flurry',ic:'🌪️',key:'O',p:1,t:3,mana:15,cd:r=>3,req:'smoke',d:r=>`Spin, slashing all nearby for ${200+50*r}% damage.`},
+ mastery:{n:'Shadow Mastery',ic:'🗡️',p:1,t:4,pass:1,req:'flurry',d:r=>`+${3*r}% crit chance, +${5*r}% damage.`},
+ clone:{n:'Shadow Clone',ic:'👥',key:'L',p:2,t:1,mana:25,cd:r=>Math.max(12,30-r-(P.skills.legion||0)*0.5),d:r=>`Summon 2 clones for 10s dealing ${50+10*r}% damage.`},
+ fury:{n:'Phantom Fury',ic:'👁️',p:2,t:2,pass:1,req:'clone',d:r=>`Clones deal +${12*r}% damage.`},
+ umbral:{n:'Umbral Link',ic:'🔮',p:2,t:3,pass:1,req:'fury',d:r=>`Clone hits restore ${(0.5*r).toFixed(1)} mana.`},
+ legion:{n:'Phantom Legion',ic:'⚔️',p:2,t:4,pass:1,req:'umbral',d:r=>`Clones attack ${5*r}% faster; clone cd -${(0.5*r).toFixed(1)}s.`}};
+const PATHS=[{n:'Shuriken Master',c:'#e0b050'},{n:'Shadow Assassin',c:'#b070ff'},{n:'Phantom Commander',c:'#60c0ff'}];
+const TIERLVL={1:1,2:6,3:12,4:18};const BASESK={shuriken:1,step:1,clone:1,fifth:1};
+function canLearn(k){const s=SK[k];return P.sp>0&&P.skills[k]<20&&P.lvl>=TIERLVL[s.t]&&(!s.req||P.skills[s.req]>0);}
+function learn(k){if(!canLearn(k)){msg('Cannot learn '+SK[k].n);return false;}P.skills[k]++;P.sp--;msg(SK[k].n+' rank '+P.skills[k]);return true;}
+function resetSkills(){let n=0;for(const k in SK){const b=BASESK[k]||0;n+=Math.max(0,(P.skills[k]||0)-b);P.skills[k]=b;}P.sp+=n;msg(`Skills reset — ${n} point(s) refunded`);recalc();ui();}
 function stat(k){let v=0;for(const s in P.eq){const it=P.eq[s];if(it&&it.a[k])v+=it.a[k];}
   const n=Object.values(P.eq).filter(i=>i&&i.set).length;for(const t in SET.bonus)if(n>=t&&SET.bonus[t][k])v+=SET.bonus[t][k];return v;}
 const S={};
 function recalc(){S.str=P.str+stat('str');S.dex=P.dex+stat('dex');S.vit=P.vit+stat('vit');S.ene=P.ene+stat('ene');
-  S.maxhp=40+S.vit*3+P.lvl*3+stat('life');S.maxmp=15+S.ene*2+P.lvl*1.5+stat('mana');
+  S.maxhp=40+S.vit*3+S.str*0.5+P.lvl*3+stat('life');S.maxmp=15+S.ene*2+P.lvl*1.5+stat('mana');
   const w=P.eq.weapon;S.dmin=(w?w.dmg[0]:1)+stat('mind');S.dmax=Math.max(S.dmin,(w?w.dmg[1]:3)+stat('maxd'));
-  S.ed=stat('ed')+S.str*0.6+S.dex*0.2+P.skills.mastery*5;S.ias=stat('ias');S.crit=5+S.dex*0.1+stat('crit')+P.skills.mastery*3;
+  S.ed=stat('ed')+S.str*0.6+S.dex*0.2+P.skills.mastery*5;S.ias=stat('ias')+S.dex*0.25+P.skills.storm*3;S.crit=5+S.dex*0.1+stat('crit')+P.skills.mastery*3;
   S.armor=Object.values(P.eq).reduce((a,i)=>a+(i&&i.ar||0),0)+stat('armor')+Math.floor(S.dex/4);S.ll=stat('ll');S.ms=stat('ms');S.mf=stat('mf');S.gf=stat('gf');S.regen=stat('regen');
-  S.dodge=Math.min(40,P.skills.evasion*4);S.aps=1.7*(1+S.ias/100);S.sk=stat('sk');S.cdr=Math.min(40,stat('cdr'));S.loh=stat('loh');const fx=new Set(Object.values(P.eq).filter(Boolean).map(i=>i.fx).filter(Boolean));S.pierce=fx.has('pierce');S.stepreset=fx.has('stepreset');S.dr=fx.has('dr')?15:0;}
+  S.dodge=Math.min(40,P.skills.evasion*4);S.aps=1.7*(1+S.ias/100);S.sk=stat('sk')+S.ene*0.4;S.vregen=S.vit*0.02;S.cdr=Math.min(40,stat('cdr'));S.loh=stat('loh');const fx=new Set(Object.values(P.eq).filter(Boolean).map(i=>i.fx).filter(Boolean));S.pierce=fx.has('pierce');S.stepreset=fx.has('stepreset');S.dr=fx.has('dr')?15:0;}
 function rollDmg(mult=1){let d=R(S.dmin,S.dmax)*(1+S.ed/100)*mult;const c=Math.random()*100<S.crit;if(c)d*=2;return{d:Math.round(d),c};}
-const xpNeed=l=>Math.round(100*Math.pow(l,1.6));
+const xpNeed=l=>Math.round(60*Math.pow(l,1.5)+40*l);
 // ---------- meshes ----------
 const loader=new GLTFLoader();const TEXCACHE={};const MODELS={};
 async function loadModels(){const L=f=>new Promise((res,rej)=>loader.load('assets/'+f,res,undefined,rej));
@@ -339,7 +347,12 @@ function enemyStrike(e){const ep=e.g.position,d=ep.distanceTo(P.pos);
 function killEnemy(en){if(en.plate){en.plate.remove();en.plate=null;}if(en.aimLine){disposeObj(en.aimLine);en.aimLine=null;}if(en.chargeLine){disposeObj(en.chargeLine);en.chargeLine=null;}if(en.tel){disposeObj(en.tel.g);en.tel=null;}en.b.userData.en=null;burstP(v4.copy(en.g.position).setY(1),0xddddcc,18,4,0.3,0.7);burstP(v4,0x660000,10,2,0.4,0.9);shake=Math.max(shake,0.12);hitStop=Math.max(hitStop,0.04);
   if(en.ch){play(en.ch,'Death_A',{once:true});corpses.push({g:en.g,ch:en.ch,t:2.2});}else disposeObj(en.g);enemies=enemies.filter(e=>e!==en);if(S.stepreset){P._stepKill=true;P.cds.step=0;popText(P.pos,'STEP READY','#c58cff','skill');}gainXp(Math.round(en.t.xp*(1+(depth-1)*0.35)*(en.champ?2.5+en.aff.size*0.5:1)));
   const p=en.g.position;const D_=rollDrops(en);if(D_.gold)dropGold(p,D_.gold);D_.items.forEach(it=>dropItem(p,it));if(D_.pot)dropItem(p,{id:uid++,potion:Math.random()<.6?'hp':'mp'});}
-function gainXp(x){P.xp+=x;while(P.xp>=xpNeed(P.lvl)){P.xp-=xpNeed(P.lvl);P.lvl++;P.pts+=5;P.sp+=1;recalc();P.hp=S.maxhp;P.mp=S.maxmp;msg(`Level ${P.lvl}! +5 attribute, +1 skill point`);
+function levelUpFx(){const un=Object.keys(SK).filter(k=>TIERLVL[SK[k].t]===P.lvl).map(k=>SK[k].n);
+  const el=$('#lvlup');el.innerHTML=`<h1>Level ${P.lvl}</h1><p>+5 Attribute Points · +1 Skill Point · Fully restored</p>${un.length?`<p class="un">New skills unlocked: ${un.join(', ')}</p>`:''}<p class="small">C — Character · T — Skills</p>`;el.classList.remove('hidden');el.style.animation='none';void el.offsetWidth;el.style.animation='';clearTimeout(levelUpFx.t);levelUpFx.t=setTimeout(()=>el.classList.add('hidden'),3200);
+  const fl=$('#flash');fl.classList.remove('go');void fl.offsetWidth;fl.classList.add('go');burstP(v4.copy(P.pos).setY(1),0xffd77a,60,6,0.45,1.1);burstP(v4.copy(P.pos).setY(0.2),0xffffff,30,3,0.3,0.8);shake=Math.max(shake,0.2);
+  const ring=new THREE.Mesh(telGeo,new THREE.MeshBasicMaterial({color:0xffd77a,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.copy(P.pos).setY(0.1);scene.add(ring);fx.push({m:ring,t:1,grow:9});
+  window.__lvlups=(window.__lvlups||0)+1;}
+function gainXp(x){P.xp+=x;while(P.xp>=xpNeed(P.lvl)){P.xp-=xpNeed(P.lvl);P.lvl++;P.pts+=5;P.sp+=1;recalc();P.hp=S.maxhp;P.mp=S.maxmp;levelUpFx();
   const f=new THREE.Mesh(new THREE.CylinderGeometry(1,1,6,16,1,true),new THREE.MeshBasicMaterial({color:0xffdd88,transparent:true,opacity:0.4,side:2}));f.position.copy(P.pos).setY(3);scene.add(f);fx.push({m:f,t:1});}ui();}
 function dropGold(p,v){const m=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.08,10),new THREE.MeshStandardMaterial({color:0xffcc33,metalness:1,roughness:0.3,emissive:0x332200}));
   m.position.set(p.x+R(-.6,.6),0.05,p.z+R(-.6,.6));scene.add(m);const el=document.createElement('div');el.className='lbl';el.style.color='#ddc060';el.textContent=v+' Gold';$('#labels').appendChild(el);drops.push({m,el,gold:v});}
@@ -381,14 +394,19 @@ function ui(){document.querySelectorAll('#btns button').forEach(b=>b.classList.t
   $('#belt').innerHTML=P.belt.map((p,i)=>`<div class="slot"><b>${i+1}</b>${p?(p==='hp'?'🧪':'🫙'):''}</div>`).join('');
   $('#skills').innerHTML=['shuriken','step','smoke','flurry','clone'].map(k=>`<div class="slot" title="${SK[k].n}" style="${P.skills[k]?'':'opacity:.3'}"><b>${SK[k].key}</b>${SK[k].ic}<i>${P.skills[k]||''}</i><div class="cd" id="cd_${k}"></div></div>`).join('');
   const c=$('#char');c.innerHTML=`<h2>Nyx — Shadow Ninja</h2><div class="row"><span>Level</span><span>${P.lvl}</span></div><div class="row"><span>Experience</span><span>${P.xp} / ${xpNeed(P.lvl)}</span></div><div class="row"><span>Gold</span><span>${P.gold}</span></div>
-   <div class="row"><span>Stat points</span><span>${P.pts}</span></div>`+[['str','Strength'],['dex','Dexterity'],['vit','Vitality'],['ene','Energy']].map(([k,n])=>`<div class="row attr"><span>${n}</span><span>${S[k]}${P.pts?`<button class="plus" data-a="${k}">+</button>`:''}</span></div>`).join('')+
+   <div class="row"><span>Stat points</span><span>${P.pts}</span></div>`+[['str','Strength','+0.6% damage, +0.5 life'],['dex','Dexterity','+0.25% attack speed, +0.1% crit, +0.25 armor'],['vit','Vitality','+3 life, +0.02 life/s regen'],['ene','Energy','+2 mana, +0.4% ability damage, mana regen']].map(([k,n,dd])=>`<div class="row attr"><span>${n}<small class="ad">${dd}</small></span><span>${S[k]}${P.pts?`<button class="plus" data-a="${k}">+</button>`:''}</span></div>`).join('')+
    `<br><div class="row"><span>Damage</span><span>${Math.round(S.dmin*(1+S.ed/100))}-${Math.round(S.dmax*(1+S.ed/100))}</span></div><div class="row"><span>Attacks / sec</span><span>${S.aps.toFixed(2)}</span></div><div class="row"><span>Crit chance</span><span>${S.crit.toFixed(1)}%</span></div>
    <div class="row"><span>Defense</span><span>${S.armor}</span></div><div class="row"><span>Life</span><span>${Math.round(S.maxhp)}</span></div><div class="row"><span>Mana</span><span>${Math.round(S.maxmp)}</span></div><div class="row"><span>Life steal</span><span>${S.ll}%</span></div><div class="row"><span>Magic find</span><span>${S.mf}%</span></div><div class="row"><span>Dodge</span><span>${S.dodge}%</span></div><div class="row"><span>Ability damage</span><span>+${S.sk}%</span></div><div class="row"><span>Cooldown reduction</span><span>${S.cdr}%</span></div><div class="row"><span>Damage taken (vs 10 hit)</span><span>${Math.max(1,Math.round(10*(1-mitig())*(1-S.dr/100)))}</span></div>${S.pierce?'<div class="row" style="color:#ff9a30"><span>Shurikens pierce</span><span>✓</span></div>':''}${S.stepreset?'<div class="row" style="color:#ff9a30"><span>Kill resets Shadow Step</span><span>✓</span></div>':''}`;
   c.innerHTML+='<p class="small">↑↓ select attribute · Enter spend point · Esc close</p>';c.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{P[b.dataset.a]++;P.pts--;ui();});
-  const tr=$('#tree');let th=`<h2>Skill Tree — ${P.sp} point(s)</h2>`;
-  for(const t of [1,2,3]){th+=`<div style="color:#998;margin-top:6px">Tier ${t} (level ${TIERLVL[t]})</div>`;for(const k in SK){const s=SK[k];if(s.t!==t)continue;const r=P.skills[k];
-    const ok=P.lvl>=TIERLVL[t]&&(!s.req||P.skills[s.req]>0);th+=`<div class="tnode ${ok?'':'locked'}"><h4><span>${s.ic} ${s.n}${s.key?' ['+s.key+']':''}</span><span>${r}/20 ${ok&&P.sp&&r<20?`<button class="plus" data-s="${k}">+</button>`:''}</span></h4><p>${s.d(Math.max(1,r))}</p>${s.req?`<p style="color:#776">Requires ${SK[s.req].n}</p>`:''}</div>`;}}
-  th+='<p class="small">↑↓ select · Enter learn · Esc close</p>';tr.innerHTML=th;tr.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{P.skills[b.dataset.s]++;P.sp--;ui();});
+  const tr=$('#tree');const spent=p=>Object.keys(SK).filter(k=>SK[k].p===p).reduce((a,k)=>a+Math.max(0,P.skills[k]-(BASESK[k]||0)),0);
+  let th=`<h2>Skill Tree</h2><div class="treehdr"><span>Skill points: <b>${P.sp}</b></span><button id="resetsk">Reset Skills (R) — free</button></div><div class="tcols">`;
+  PATHS.forEach((pa,pi)=>{th+=`<div class="tcol"><h3 style="color:${pa.c}">${pa.n}<small>${spent(pi)} pts</small></h3>`;
+    Object.keys(SK).filter(k=>SK[k].p===pi).sort((a,b)=>SK[a].t-SK[b].t).forEach(k=>{const s=SK[k],r=P.skills[k],lvOk=P.lvl>=TIERLVL[s.t],rqOk=!s.req||P.skills[s.req]>0,can=canLearn(k);
+      th+=`<div class="tnode ${r?'has':''} ${lvOk&&rqOk?'':'locked'} ${can?'can':''}" data-s="${k}"><div class="tn1"><span class="tic">${s.ic}</span><span class="tnm">${s.n}${s.key?` <kbd>${s.key}</kbd>`:''}${s.pass?' <em>passive</em>':''}</span><span class="trk">${r}/20</span></div>
+        <div class="tcur">${r?s.d(r):'Not learned'}</div><div class="tnext">${r<20?'Next: '+s.d(r+1):'Maxed'}</div>${!lvOk?`<div class="treq">Requires level ${TIERLVL[s.t]}</div>`:!rqOk?`<div class="treq">Requires ${SK[s.req].n}</div>`:''}</div>`;});th+='</div>';});
+  th+=`</div><p class="small">←→ path · ↑↓ skill · Enter/click learn · R reset · Esc close</p>`;tr.innerHTML=th;
+  tr.querySelectorAll('[data-s]').forEach(b=>b.onclick=e=>{e.stopPropagation();const L=treeList();sel.tree=L.indexOf(b.dataset.s);activePanel='tree';learn(b.dataset.s);recalc();ui();});
+  tr.querySelector('#resetsk').onclick=e=>{e.stopPropagation();resetSkills();};tr.onmousedown=e=>e.stopPropagation();
   const inv=$('#inv');inv.innerHTML=`<h2>Inventory</h2><div id="equip">${SLOTS.map(([s,n])=>{const it=P.eq[s];return `<div class="eq ${it?'r'+it.r:'empty'}" data-e="${s}">${it?`<span class="ic">${it.base.ic}</span>`:''}<small>${n}</small></div>`}).join('')}</div><div class="bagh"><span>Backpack</span><span class="gold">◉ ${P.gold}</span></div>
    <div id="grid">${P.inv.map(it=>`<div class="it r${it.r}" data-i="${it.id}" style="left:${it.x*39}px;top:${it.y*39}px;width:${it.base.w*39-1}px;height:${it.base.h*39-1}px">${it.base.ic}</div>`).join('')}</div>
    <div style="text-align:right;margin-top:6px"><button id="sellall">Sell All Normal &amp; Magic (V)</button></div><p class="small">Arrows select · Enter/click: menu · Esc close</p>`;
@@ -446,6 +464,7 @@ addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=
   if(dlg){if(['arrowleft','arrowright','arrowup','arrowdown','tab'].includes(k)){dlg.i=1-dlg.i;drawDlg();}if(k==='enter')confirmDlg();if(k==='escape')closeDlg();return;}
   if(activePanel==='inv'&&k==='v'&&!menu){openSellAll();return;}
   if(menu){if(k==='arrowup'||k==='arrowleft'){menu.i=(menu.i+2)%3;drawMenu();}if(k==='arrowdown'||k==='arrowright'){menu.i=(menu.i+1)%3;drawMenu();}if(k==='enter')confirmMenu();if(k==='escape'){closeMenu();navUI();}return;}
+  if(activePanel==='tree'&&k==='r'){panelKey(k);return;}
   if(activePanel&&['arrowup','arrowdown','arrowleft','arrowright','enter','x','delete','backspace'].includes(k)){panelKey(k);return;}
   keys.add(k);
   if(KEYMAP[k]&&!e.repeat)cast(KEYMAP[k]);
@@ -457,7 +476,7 @@ addEventListener('keyup',e=>{const k=codeKey(e);keys.delete(k);if(k==='shift')sh
 addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>keys.clear());
 function pickupNearest(){const ch=chests.filter(c=>!c.opened).map(c=>[c,c.g.position.distanceTo(P.pos)]).filter(x=>x[1]<2.4).sort((a,b)=>a[1]-b[1])[0];if(ch){openChest(ch[0]);return;}let b=null,bd=2.5;drops.forEach(d=>{const x=d.m.position.distanceTo(P.pos);if(x<bd){bd=x;b=d;}});if(b)tryPickup(b);else msg('Nothing to pick up');}
 function invList(){return [...SLOTS.map(([s])=>({eq:s})),...P.inv.slice().sort((a,b)=>a.y-b.y||a.x-b.x).map(it=>({it}))];}
-function treeList(){return Object.keys(SK);}
+function treeList(){return [0,1,2].flatMap(p=>Object.keys(SK).filter(k=>SK[k].p===p).sort((a,b)=>SK[a].t-SK[b].t));}
 const ATTRS=['str','dex','vit','ene'];
 function panelKey(k){const p=activePanel;
   if(p==='inv'){const c=sel.cur;
@@ -470,8 +489,9 @@ function panelKey(k){const p=activePanel;
     const it=selItem();
     if(k==='enter'&&it){navUI();openMenu();return;}
     if((k==='x'||k==='delete'||k==='backspace')&&it){navUI();openMenu('sell');return;}}
-  if(p==='tree'){const L=treeList();let i=sel.tree;if(k==='arrowdown'||k==='arrowright')i++;if(k==='arrowup'||k==='arrowleft')i--;sel.tree=(i+L.length)%L.length;
-    if(k==='enter'){const s=SK[L[sel.tree]],key=L[sel.tree];if(P.sp>0&&P.skills[key]<20&&P.lvl>=TIERLVL[s.t]&&(!s.req||P.skills[s.req]>0)){P.skills[key]++;P.sp--;msg(s.n+' rank '+P.skills[key]);}else msg('Cannot learn');}}
+  if(p==='tree'){const L=treeList();const cur=SK[L[sel.tree]]||SK[L[0]];const col=pi=>L.filter(k=>SK[k].p===pi);let pc=cur.p,row=col(pc).indexOf(L[sel.tree]);
+    if(k==='arrowdown')row=Math.min(col(pc).length-1,row+1);if(k==='arrowup')row=Math.max(0,row-1);if(k==='arrowright'){pc=(pc+1)%3;row=Math.min(row,col(pc).length-1);}if(k==='arrowleft'){pc=(pc+2)%3;row=Math.min(row,col(pc).length-1);}
+    sel.tree=L.indexOf(col(pc)[row]);if(k==='enter'){learn(L[sel.tree]);recalc();}if(k==='r'){resetSkills();}}
   if(p==='char'){let i=sel.char;if(k==='arrowdown')i++;if(k==='arrowup')i--;sel.char=(i+4)%4;if(k==='enter'&&P.pts>0){P[ATTRS[sel.char]]++;P.pts--;}}
   ui();}
 function navUI(){hideTip();document.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'));
@@ -479,7 +499,7 @@ function navUI(){hideTip();document.querySelectorAll('.sel').forEach(e=>e.classL
   if(!ii.classList.contains('hidden')){const c=sel.cur,it=selItem();let el;
     if(c.a==='eq')el=ii.querySelector(`[data-e="${selSlot()}"]`);else{const cur=document.createElement('div');cur.className='cursor sel';cur.style.cssText=`left:${c.x*39}px;top:${c.y*39}px`;ii.querySelector('#grid').appendChild(cur);el=it?ii.querySelector(`[data-i="${it.id}"]`):cur;el.classList.add('sel');}
     if(el){el.classList.add('sel');if(activePanel==='inv'&&it)showTip(it,el,cmpFor(it,c.a==='eq'));}}
-  if(!tt.classList.contains('hidden')){const el=tt.querySelectorAll('.tnode')[sel.tree];el&&el.classList.add('sel');el&&el.scrollIntoView({block:'nearest'});}
+  if(!tt.classList.contains('hidden')){const el=tt.querySelector(`.tnode[data-s="${treeList()[sel.tree]}"]`);el&&el.classList.add('sel');el&&el.scrollIntoView({block:'nearest'});}
   if(!cc.classList.contains('hidden')){const el=cc.querySelectorAll('.attr')[sel.char];el&&el.classList.add('sel');}}
 function respawn(){if(!P.dead)return;const ch=pMesh.userData.ch;if(ch){ch.cur=null;ch.lock=0;ch.mixer.stopAllAction();play(ch,'2H_Melee_Idle');}$('#death').classList.add('hidden');P.dead=false;recalc();P.hp=S.maxhp;P.mp=S.maxmp;newLevel();ui();}
 function drink(i){const p=P.belt[i];if(!p)return;if(p==='hp')P.hpPot=(P.hpPot||0)+S.maxhp*0.5;else P.mp=Math.min(S.maxmp,P.mp+S.maxmp*0.5);P.belt[i]=null;
@@ -487,10 +507,10 @@ function drink(i){const p=P.belt[i];if(!p)return;if(p==='hp')P.hpPot=(P.hpPot||0
 // ---------- combat ----------
 function playP(n,sp=1){const ch=pMesh.userData.ch;if(ch)play(ch,n,{once:true,speed:sp,fade:0.08});}
 function faceTo(p){pMesh.rotation.y=Math.atan2(p.x-P.pos.x,p.z-P.pos.z);}
-function throwFan(from,dir,mult,count){const sh=[];const n=count;for(let i=0;i<n;i++){const a=(i-(n-1)/2)*0.22;const d=dir.clone().applyAxisAngle(new THREE.Vector3(0,1,0),a);
-  const m=shPool.pop()||new THREE.Mesh(shurikenGeo,shurikenMat);m.visible=true;m.rotation.set(-Math.PI/2,0,0);m.position.copy(from).setY(1.2);scene.add(m);projs.push({m,v:d.multiplyScalar(18),t:0.7,mult,hit:new Set()});}}
+function throwFan(from,dir,mult,count,byClone){const sh=[];const n=count;for(let i=0;i<n;i++){const a=(i-(n-1)/2)*0.22;const d=dir.clone().applyAxisAngle(new THREE.Vector3(0,1,0),a);
+  const m=shPool.pop()||new THREE.Mesh(shurikenGeo,shurikenMat);m.visible=true;m.rotation.set(-Math.PI/2,0,0);m.position.copy(from).setY(1.2);scene.add(m);projs.push({m,v:d.multiplyScalar(18),t:0.7,mult,hit:new Set(),clone:!!byClone});}}
 function attackAt(p){if(P.atkCd>0)return;P.atkCd=1/S.aps;faceTo(p);playP('Throw',Math.max(1.6,S.aps*1.3));P.attacks++;let n=3;if(P.attacks%5===0){n+=P.skills.fifth;popText(P.pos,'★','#fc6');}
-  const mult=1+0.15*P.skills.shuriken;const dir=new THREE.Vector3(p.x-P.pos.x,0,p.z-P.pos.z).normalize();throwFan(P.pos,dir,mult,n);
+  const mult=(1+0.15*P.skills.shuriken)*(1+0.04*P.skills.storm);const dir=new THREE.Vector3(p.x-P.pos.x,0,p.z-P.pos.z).normalize();throwFan(P.pos,dir,mult,n);
 }
 function nearest(maxD=14){let b=null,bd=maxD;enemies.forEach(e=>{const d=e.g.position.distanceTo(P.pos);if(d<bd){bd=d;b=e;}});return b;}
 function burst(p,col,rad){const m=new THREE.Mesh(new THREE.SphereGeometry(rad,16,12),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.5}));m.position.copy(p).setY(0.8);scene.add(m);fx.push({m,t:0.5,grow:1});}
@@ -513,7 +533,7 @@ function project(p,el,yoff=0){v3.copy(p);v3.y+=yoff;v3.project(camera);if(v3.z>1
 let running=false;
 function tick(){requestAnimationFrame(tick);let dt=Math.min(clock.getDelta(),0.05);if(!running){LOW?renderer.render(scene,camera):composer.render();return;}if(hitStop>0){hitStop-=dt;dt*=0.1;}updParticles(dt);
   for(let i=corpses.length-1;i>=0;i--){const c=corpses[i];c.t-=dt;c.ch.mixer.update(dt);if(c.t<0.6)c.g.position.y-=dt*1.5;if(c.t<=0){disposeObj(c.g);corpses.splice(i,1);}}const t=clock.elapsedTime;
-  recalc();if(!P.dead){P.mp=Math.min(S.maxmp,P.mp+(1+S.ene*0.03)*dt);P.hp=Math.min(S.maxhp,P.hp+S.regen*dt*0.5);
+  recalc();if(!P.dead){P.mp=Math.min(S.maxmp,P.mp+(1+S.ene*0.03)*dt);P.hp=Math.min(S.maxhp,P.hp+(S.regen*0.5+S.vregen)*dt);
     if(P.hpPot>0){const h=Math.min(P.hpPot,S.maxhp*0.25*dt);P.hp=Math.min(S.maxhp,P.hp+h);P.hpPot-=h;}}
   P.atkCd-=dt;for(const k in P.cds)P.cds[k]-=dt;if(P.grace>0)P.grace-=dt;
   if(mdown&&!P.dead&&!P.atkTarget){if(hoverEn)P.atkTarget=hoverEn;else if(shift)attackAt(mouseWorld);else P.target=mouseWorld.clone();}
@@ -545,7 +565,7 @@ function tick(){requestAnimationFrame(tick);let dt=Math.min(clock.getDelta(),0.0
       let goal=null,spd=5.2;
       if(b){const to=v4.copy(b.g.position).sub(c.position).setY(0);u.face=Math.atan2(to.x,to.z);
         if(bd>7.5)goal=b.g.position.clone();else if(bd<3.5)goal=c.position.clone().addScaledVector(to.normalize(),-2);
-        if(u.cd<=0&&bd<=9){u.cd=1/S.aps*R(0.9,1.2);u.ch&&play(u.ch,'Throw',{once:true,speed:2});throwFan(c.position,to.clone().normalize(),(1+0.15*P.skills.shuriken)*(0.5+0.1*P.skills.clone)*(1+S.sk/100),3);}}
+        if(u.cd<=0&&bd<=9){u.cd=1/(S.aps*(1+0.05*P.skills.legion))*R(0.9,1.2);u.ch&&play(u.ch,'Throw',{once:true,speed:2});throwFan(c.position,to.clone().normalize(),(1+0.15*P.skills.shuriken)*(0.5+0.1*P.skills.clone)*(1+0.12*P.skills.fury)*(1+S.sk/100),3,true);}}
       else{const slot=new THREE.Vector3(P.pos.x+(ci?2.2:-2.2),0,P.pos.z+(ci?-1:1)*0.8+1.6);if(slot.distanceTo(c.position)>1.2&&(c.position.distanceTo(P.pos)>3.2||u.follow)){u.follow=slot.distanceTo(c.position)>0.6;goal=slot;}else u.follow=false;
         if(c.position.distanceTo(P.pos)>14){c.position.copy(slot);burstP(v4.copy(slot).setY(1),0x9933ff,10,2,0.3,0.5);}}
       if(goal){const before=c.position.clone();moveToward(c.position,goal,spd,dt,0.3);if(before.distanceToSquared(c.position)>1e-6){u.moving=true;if(!b){const d2=v4.copy(c.position).sub(before);u.face=Math.atan2(d2.x,d2.z);}}}
@@ -554,7 +574,7 @@ function tick(){requestAnimationFrame(tick);let dt=Math.min(clock.getDelta(),0.0
   // projectiles
   projs=projs.filter(p=>{p.t-=dt;p.m.position.addScaledVector(p.v,dt);p.m.rotation.z+=dt*25;if(Math.random()<dt*30)particle(p.m.position,0x8899ff,0.18,0.25,0.2,0);
     if(!walk(p.m.position.x,p.m.position.z))p.t=0;
-    for(const e of enemies){if(!p.hit.has(e)&&e.g.position.distanceTo(v3.copy(p.m.position).setY(0))<e.t.r+0.35){p.hit.add(e);const {d,c}=rollDmg(p.mult);hitEnemy(e,d,c,p.v);if(!(S.pierce&&p.hit.size<3))p.t=0;break;}}
+    for(const e of enemies){if(!p.hit.has(e)&&e.g.position.distanceTo(v3.copy(p.m.position).setY(0))<e.t.r+0.35){p.hit.add(e);if(p.clone&&P.skills.umbral)P.mp=Math.min(S.maxmp,P.mp+0.5*P.skills.umbral);const {d,c}=rollDmg(p.mult);hitEnemy(e,d,c,p.v);if(!(S.pierce&&p.hit.size<3))p.t=0;break;}}
     if(p.t<=0){scene.remove(p.m);shPool.push(p.m);if(p.hit.size)burstP(p.m.position,0xffffff,4,3,0.15,0.2);return false;}return true;});
   eprojs=eprojs.filter(p=>{p.t-=dt;p.m.position.addScaledVector(p.v,dt);if(!walk(p.m.position.x,p.m.position.z))p.t=0;
     if(v3.copy(p.m.position).setY(0).distanceTo(P.pos)<0.5){hurtPlayer(p.d);p.t=0;}if(p.t<=0){scene.remove(p.m);return false;}return true;});
@@ -610,4 +630,4 @@ recalc();P.eq.weapon=makeItem(1,0,0);P.eq.weapon.base=BASES[0];P.eq.weapon.name=
 newLevel();ui();tick();
 $('#start').onclick=()=>{$('#title').remove();running=true;clock.getDelta();renderer.domElement.focus();};$('#start').disabled=false;$('#start').textContent='Enter the Depths';
 let frames=0;(function fc(){frames++;requestAnimationFrame(fc);})();
-window.__game={mitig:()=>mitig(),rollDrops,rarityWeights,floorCfg,ETYPES,spawnFull:(x,z,ch,aff,t)=>spawnEnemy(x,z,ch,-1,aff,t),hazards:()=>hazards,CAMOFF,pMesh,equip:it=>equip(it),cast:k=>cast(k),S,recalc:()=>recalc(),rollDmg:m=>rollDmg(m),hurt2:d=>hurtPlayer(d),stat:k=>stat(k),UNIQ,SET,BASES,throwFan:(f,d,m,n)=>throwFan(f,d,m,n),spawnAt:(x,z)=>spawnEnemy(x,z,false),stuckScan:()=>{let bad=0,tested=0;for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!grid[i][j])continue;for(const [ox,oz] of [[0.5,0.5],[0.15,0.15],[0.85,0.85],[0.15,0.85]]){const x=(i+ox)*T,z=(j+oz)*T;if(!free(x,z,0.35))continue;tested++;let ok=0;for(let a=0;a<8;a++){const dx=Math.cos(a*0.785)*0.3,dz=Math.sin(a*0.785)*0.3;if(free(x+dx,z,0.35)||free(x,z+dz,0.35))ok++;}if(!ok)bad++;}}return {tested,bad};},genLayout,checkLayout,chests:()=>chests,fog:()=>fogExplored,layout:()=>layout,openChest:c=>openChest(c),pickupNearest:()=>pickupNearest(),depthSet:d=>{depth=d;},animStates:()=>enemies.map(e=>e.ch?(e.ch.cur?e.ch.cur.getClip().name+(e.ch.cur.isRunning()||e.ch.cur.paused===false?'':'(stopped)'):'NONE'):'noch'),dlgOpen:()=>!!dlg,arrowsFired:()=>window.__arrows||0,free:(x,z)=>free(x,z),V:THREE.Vector3,setDepth:d=>{depth=d;newLevel();},newLevel:()=>newLevel(),eprojCount:()=>eprojs.length,ap:()=>activePanel,los:(a,b)=>los(a,b),hurt:d=>hurtPlayer(d),selCur:()=>sel.cur,grid:()=>grid,stairs:()=>stairs,drops:()=>drops,depth:()=>depth,frames:()=>frames,info:()=>({geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs.length,children:scene.children.length,labels:$('#labels').children.length}),P,enemies:()=>enemies,cast,attackAt,start:()=>$('#start').click(),makeItem,placeInv,ui,dropItem};
+window.__game={SK,PATHS,learn:k=>learn(k),canLearn:k=>canLearn(k),resetSkills:()=>resetSkills(),xpNeed,gainXp:x=>gainXp(x),treeList:()=>treeList(),mitig:()=>mitig(),rollDrops,rarityWeights,floorCfg,ETYPES,spawnFull:(x,z,ch,aff,t)=>spawnEnemy(x,z,ch,-1,aff,t),hazards:()=>hazards,CAMOFF,pMesh,equip:it=>equip(it),cast:k=>cast(k),S,recalc:()=>recalc(),rollDmg:m=>rollDmg(m),hurt2:d=>hurtPlayer(d),stat:k=>stat(k),UNIQ,SET,BASES,throwFan:(f,d,m,n)=>throwFan(f,d,m,n),spawnAt:(x,z)=>spawnEnemy(x,z,false),stuckScan:()=>{let bad=0,tested=0;for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!grid[i][j])continue;for(const [ox,oz] of [[0.5,0.5],[0.15,0.15],[0.85,0.85],[0.15,0.85]]){const x=(i+ox)*T,z=(j+oz)*T;if(!free(x,z,0.35))continue;tested++;let ok=0;for(let a=0;a<8;a++){const dx=Math.cos(a*0.785)*0.3,dz=Math.sin(a*0.785)*0.3;if(free(x+dx,z,0.35)||free(x,z+dz,0.35))ok++;}if(!ok)bad++;}}return {tested,bad};},genLayout,checkLayout,chests:()=>chests,fog:()=>fogExplored,layout:()=>layout,openChest:c=>openChest(c),pickupNearest:()=>pickupNearest(),depthSet:d=>{depth=d;},animStates:()=>enemies.map(e=>e.ch?(e.ch.cur?e.ch.cur.getClip().name+(e.ch.cur.isRunning()||e.ch.cur.paused===false?'':'(stopped)'):'NONE'):'noch'),dlgOpen:()=>!!dlg,arrowsFired:()=>window.__arrows||0,free:(x,z)=>free(x,z),V:THREE.Vector3,setDepth:d=>{depth=d;newLevel();},newLevel:()=>newLevel(),eprojCount:()=>eprojs.length,ap:()=>activePanel,los:(a,b)=>los(a,b),hurt:d=>hurtPlayer(d),selCur:()=>sel.cur,grid:()=>grid,stairs:()=>stairs,drops:()=>drops,depth:()=>depth,frames:()=>frames,info:()=>({geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs.length,children:scene.children.length,labels:$('#labels').children.length}),P,enemies:()=>enemies,cast,attackAt,start:()=>$('#start').click(),makeItem,placeInv,ui,dropItem};
