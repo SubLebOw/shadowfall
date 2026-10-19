@@ -1,0 +1,36 @@
+*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#000;font-family:Georgia,serif;color:#c8b994;user-select:none}
+canvas{display:block}
+#labels{position:fixed;inset:0;pointer-events:none}
+.lbl{position:absolute;transform:translate(-50%,-100%);font-size:12px;padding:1px 4px;background:rgba(0,0,0,.75);pointer-events:auto;cursor:pointer;white-space:nowrap}
+.dmg{position:absolute;transform:translate(-50%,-50%);font-weight:bold;font-size:16px;text-shadow:1px 1px 2px #000;pointer-events:none}
+#hud{position:fixed;bottom:0;left:0;right:0;height:130px;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+.orb{width:120px;height:120px;border-radius:50%;border:4px solid #4a3b22;background:#111;position:relative;overflow:hidden;margin:0 10px 6px;box-shadow:0 0 20px #000 inset}
+.orb .fill{position:absolute;bottom:0;left:0;right:0;height:100%}
+#hpOrb .fill{background:radial-gradient(circle at 40% 30%,#f33,#600)}#mpOrb .fill{background:radial-gradient(circle at 40% 30%,#46f,#013)}
+.orb span{position:absolute;width:100%;top:45%;text-align:center;font-size:13px;color:#fff;text-shadow:1px 1px 2px #000}
+#bar{width:560px;background:linear-gradient(#2a2216,#120e08);border:2px solid #4a3b22;padding:6px;pointer-events:auto;margin-bottom:6px}
+#xpbar{height:6px;background:#221;margin-bottom:6px}#xpbar .fill{height:100%;background:#cb9;width:0}
+#belt,#skills{display:inline-flex;gap:4px;vertical-align:top}#skills{margin-left:14px}
+.slot{width:44px;height:44px;border:1px solid #5a4a2a;background:#0c0a07;position:relative;font-size:22px;display:flex;align-items:center;justify-content:center}
+.slot b{position:absolute;top:1px;left:3px;font-size:10px;color:#aaa}.slot i{position:absolute;bottom:1px;right:3px;font-size:10px;font-style:normal}
+.slot .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.7)}
+#btns{display:inline-flex;flex-direction:column;gap:2px;margin-left:10px;vertical-align:top}
+button{background:#2b1f12;color:#d9c48e;border:1px solid #6a5530;font-family:inherit;cursor:pointer;font-size:11px;padding:2px 6px}button:hover{background:#4a3520}
+.panel{position:fixed;top:20px;width:420px;max-height:calc(100vh - 170px);overflow:auto;background:rgba(14,10,6,.95);border:2px solid #5a4a2a;padding:12px}
+.left{left:20px}.right{right:20px}.hidden{display:none!important}
+.panel h2{margin:0 0 8px;color:#e0c070;font-size:18px;text-align:center}
+.row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #2a2015}
+.plus{width:20px;padding:0;margin-left:6px}
+#equip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.eq{height:56px;border:1px solid #5a4a2a;background:#0a0805;font-size:10px;color:#666;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;position:relative}
+.eq .ic{font-size:26px}
+#grid{position:relative;width:390px;height:156px;background:repeating-linear-gradient(90deg,#0a0805 0 38px,#3a2e1a 38px 39px),#0a0805;border:1px solid #5a4a2a}
+.it{position:absolute;border:1px solid;background:rgba(30,25,15,.9);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer}
+.r0{color:#eee;border-color:#888}.r1{color:#6f8cff;border-color:#6f8cff}.r2{color:#ff0;border-color:#cc0}.r3{color:#2f2;border-color:#2c2}.r4{color:#c8a050;border-color:#c8a050}
+#tip{position:fixed;z-index:20;background:rgba(0,0,0,.92);border:1px solid #555;padding:8px 12px;text-align:center;font-size:13px;max-width:300px;pointer-events:none}
+#tip .n{font-size:15px;font-weight:bold}#tip .a{color:#6f8cff}#tip .g{color:#888}#tip .s{color:#2f2}#tip .bad{color:#f44}
+.tnode{border:1px solid #5a4a2a;margin:4px 0;padding:6px;background:#0c0a07}.tnode.locked{opacity:.45}.tnode h4{margin:0;color:#e0c070;display:flex;justify-content:space-between}.tnode p{margin:3px 0 0;font-size:12px}
+#topinfo{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-size:14px;text-shadow:1px 1px 2px #000}
+#msg{position:fixed;top:30%;width:100%;text-align:center;font-size:28px;color:#e0c070;text-shadow:2px 2px 4px #000;pointer-events:none}
+#title{position:fixed;inset:0;background:radial-gradient(#200 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30}
+#title h1{font-size:72px;letter-spacing:12px;color:#b02020;margin:0;text-shadow:0 0 30px #f00}#title button{font-size:20px;padding:10px 30px;margin:20px}.small{font-size:12px;color:#887}

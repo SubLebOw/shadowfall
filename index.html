@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Shadowfall</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./lib/three.module.js"}}</script>
+</head><body>
+<div id="labels"></div>
+<div id="hud">
+  <div id="hpOrb" class="orb"><div class="fill"></div><span></span></div>
+  <div id="bar">
+    <div id="xpbar"><div class="fill"></div></div>
+    <div id="belt"></div>
+    <div id="skills"></div>
+    <div id="btns"><button data-p="char">C Char</button><button data-p="inv">I Inv</button><button data-p="tree">T Skills</button></div>
+  </div>
+  <div id="mpOrb" class="orb"><div class="fill"></div><span></span></div>
+</div>
+<div id="topinfo"></div>
+<div id="msg"></div>
+<div id="char" class="panel left hidden"></div>
+<div id="tree" class="panel left hidden"></div>
+<div id="inv" class="panel right hidden"></div>
+<div id="tip" class="hidden"></div>
+<div id="title"><h1>SHADOWFALL</h1><p>Nyx — The Shadow Ninja</p><button id="start">Enter the Depths</button>
+<p class="small">Click to move · Click enemies to throw shurikens · Q W E R skills · 1-4 potions · I/C/T panels</p></div>
+<script type="module" src="game.js"></script>
+</body></html>
