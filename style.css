@@ -62,3 +62,6 @@ h1,h2,h4,#msg,#topinfo,button,.orb span{font-family:'Cinzel',Georgia,serif}
 #ctx .opt{padding:6px 12px;cursor:pointer;color:#d9c48e}#ctx .opt.on{background:#5a3c18;color:#fff}
 #tip .cmp{margin-top:6px;border-top:1px solid #444;padding-top:4px}#tip .up{color:#3f3}#tip .down{color:#f44}
 .dmg{font-size:15px;opacity:.95}.dmg.crit{font-size:24px;font-weight:900;text-shadow:0 0 6px #a50,1px 1px 2px #000}.dmg.hurt{font-size:17px}.dmg.skill{font-size:13px;letter-spacing:2px}
+#dlg{position:fixed;z-index:50;left:50%;top:40%;transform:translate(-50%,-50%);width:340px;padding:16px 20px;text-align:center;background:linear-gradient(#2a1f12,#0e0905);box-shadow:0 0 0 2px #1d150a,0 0 0 4px #9a7a36,0 0 0 6px #1d150a,0 10px 40px #000;font-size:16px}
+#dlg h3{margin:0 0 8px;font-family:'Cinzel',serif;color:#e0c070;letter-spacing:2px}#dlg .dbtn{display:flex;gap:12px;justify-content:center;margin-top:10px}#dlg button{font-size:14px;padding:6px 18px}#dlg button.on{background:#6a4520;color:#fff;box-shadow:0 0 8px #c90}
+#sellall{font-size:11px}
