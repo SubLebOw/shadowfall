@@ -61,3 +61,4 @@ h1,h2,h4,#msg,#topinfo,button,.orb span{font-family:'Cinzel',Georgia,serif}
 #ctx{position:fixed;z-index:40;min-width:120px;background:linear-gradient(#2a1f12,#0e0905);box-shadow:0 0 0 1px #1d150a,0 0 0 3px #9a7a36,0 6px 20px #000;font-family:'Cinzel',serif;font-size:13px}
 #ctx .opt{padding:6px 12px;cursor:pointer;color:#d9c48e}#ctx .opt.on{background:#5a3c18;color:#fff}
 #tip .cmp{margin-top:6px;border-top:1px solid #444;padding-top:4px}#tip .up{color:#3f3}#tip .down{color:#f44}
+.dmg{font-size:15px;opacity:.95}.dmg.crit{font-size:24px;font-weight:900;text-shadow:0 0 6px #a50,1px 1px 2px #000}.dmg.hurt{font-size:17px}.dmg.skill{font-size:13px;letter-spacing:2px}
