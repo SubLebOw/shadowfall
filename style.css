@@ -54,7 +54,7 @@ h1,h2,h4,#msg,#topinfo,button,.orb span{font-family:'Cinzel',Georgia,serif}
 .panel{background:linear-gradient(rgba(24,17,9,.97),rgba(10,7,4,.97));border:none;box-shadow:0 0 0 2px #1d150a,0 0 0 4px #9a7a36,0 0 0 6px #1d150a,0 10px 40px #000;border-radius:4px}
 .panel h2{font-size:20px;letter-spacing:3px;border-bottom:1px solid #5a4520;padding-bottom:6px;text-shadow:0 0 10px #a07020}
 #tip{border:1px solid #8a6b30;box-shadow:0 0 20px #000;font-family:'Cormorant Garamond',serif;font-size:15px}
-#title h1{font-family:'Cinzel',serif;font-weight:900;font-size:84px;background:linear-gradient(#ff6040,#7a0a00);-webkit-background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 25px #a00)}
+#title h1{white-space:nowrap;font-family:'Cinzel',serif;font-weight:900;font-size:84px;background:linear-gradient(#ff6040,#7a0a00);-webkit-background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 25px #a00)}
 #title p{font-family:'Cinzel',serif;letter-spacing:4px}#title button{border:1px solid #b08a40;box-shadow:0 0 15px #600;letter-spacing:3px}
 .dmg{font-family:'Cinzel',serif}
 .lbl{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;border:1px solid rgba(120,90,40,.5)}
@@ -65,3 +65,5 @@ h1,h2,h4,#msg,#topinfo,button,.orb span{font-family:'Cinzel',Georgia,serif}
 #dlg{position:fixed;z-index:50;left:50%;top:40%;transform:translate(-50%,-50%);width:340px;padding:16px 20px;text-align:center;background:linear-gradient(#2a1f12,#0e0905);box-shadow:0 0 0 2px #1d150a,0 0 0 4px #9a7a36,0 0 0 6px #1d150a,0 10px 40px #000;font-size:16px}
 #dlg h3{margin:0 0 8px;font-family:'Cinzel',serif;color:#e0c070;letter-spacing:2px}#dlg .dbtn{display:flex;gap:12px;justify-content:center;margin-top:10px}#dlg button{font-size:14px;padding:6px 18px}#dlg button.on{background:#6a4520;color:#fff;box-shadow:0 0 8px #c90}
 #sellall{font-size:11px}
+#minimap{position:fixed;top:14px;right:14px;width:200px;height:200px;z-index:5;border-radius:4px;box-shadow:0 0 0 2px #1d150a,0 0 0 4px #9a7a36,0 4px 16px #000;pointer-events:none}
+#minimap.hidden{display:none}
