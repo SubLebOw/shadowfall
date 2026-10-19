@@ -82,14 +82,14 @@ const P={lvl:1,xp:0,str:15,dex:25,vit:15,ene:12,pts:0,sp:1,gold:0,hp:1,mp:1,pos:
  eq:{},inv:[],belt:[],skills:{shuriken:1,step:1,fifth:1,clone:1,smoke:0,venom:0,evasion:0,flurry:0,mastery:0},cds:{},clones:[],cloneT:0,dead:false};
 P.belt=['hp','hp','mp','mp'];
 const SK={
- shuriken:{n:'Shuriken Spread',ic:'✴️',key:'LMB',t:1,d:r=>`Throw 3 shurikens in a spread. +${15*r}% damage.`},
- step:{n:'Shadow Step',ic:'🌑',key:'Q',t:1,mana:8,cd:r=>Math.max(1.5,5-r*0.3),d:r=>`Teleport behind the nearest enemy and strike for ${150+40*r}% damage.`},
+ shuriken:{n:'Shuriken Spread',ic:'✴️',key:'J',t:1,d:r=>`Throw 3 shurikens in a spread. +${15*r}% damage.`},
+ step:{n:'Shadow Step',ic:'🌑',key:'K',t:1,mana:8,cd:r=>Math.max(1.5,5-r*0.3),d:r=>`Teleport behind the nearest enemy and strike for ${150+40*r}% damage.`},
  fifth:{n:'Fifth Star',ic:'⭐',t:1,pass:1,d:r=>`Passive: every 5th attack fires ${r} extra shuriken(s).`},
- smoke:{n:'Smoke Bomb',ic:'💨',key:'W',t:2,mana:12,cd:r=>8,req:'step',d:r=>`Blinds & stuns nearby enemies for ${(1.5+r*0.25).toFixed(1)}s and deals ${80+30*r}% damage.`},
+ smoke:{n:'Smoke Bomb',ic:'💨',key:'U',t:2,mana:12,cd:r=>8,req:'step',d:r=>`Blinds & stuns nearby enemies for ${(1.5+r*0.25).toFixed(1)}s and deals ${80+30*r}% damage.`},
  venom:{n:'Venom Edge',ic:'🧪',t:2,pass:1,req:'shuriken',d:r=>`Passive: hits poison for ${10*r}% weapon damage per second (3s).`},
  evasion:{n:'Evasion',ic:'🌀',t:2,pass:1,req:'fifth',d:r=>`Passive: ${Math.min(40,4*r)}% chance to dodge attacks.`},
- flurry:{n:'Blade Flurry',ic:'🌪️',key:'E',t:3,mana:15,cd:r=>3,req:'smoke',d:r=>`Spin, slashing all nearby enemies for ${200+50*r}% damage.`},
- clone:{n:'Shadow Clone',ic:'👥',key:'R',t:1,mana:25,cd:r=>Math.max(15,30-r),d:r=>`Summon two shadow ninjas that copy your attacks for ${10+Math.floor(r/2)}s at ${50+10*r}% damage.`},
+ flurry:{n:'Blade Flurry',ic:'🌪️',key:'O',t:3,mana:15,cd:r=>3,req:'smoke',d:r=>`Spin, slashing all nearby enemies for ${200+50*r}% damage.`},
+ clone:{n:'Shadow Clone',ic:'👥',key:'L',t:1,mana:25,cd:r=>Math.max(15,30-r),d:r=>`Summon two shadow ninjas that copy your attacks for ${10+Math.floor(r/2)}s at ${50+10*r}% damage.`},
  mastery:{n:'Shadow Mastery',ic:'🗡️',t:3,pass:1,req:'clone',d:r=>`Passive: +${3*r}% critical chance and +${5*r}% damage.`}};
 const TIERLVL={1:1,2:6,3:12};
 function stat(k){let v=0;for(const s in P.eq){const it=P.eq[s];if(it&&it.a[k])v+=it.a[k];}
@@ -186,22 +186,22 @@ function ui(){recalc();
   $('#belt').innerHTML=P.belt.map((p,i)=>`<div class="slot"><b>${i+1}</b>${p?(p==='hp'?'🧪':'🫙'):''}</div>`).join('');
   $('#skills').innerHTML=['shuriken','step','smoke','flurry','clone'].map(k=>`<div class="slot" title="${SK[k].n}" style="${P.skills[k]?'':'opacity:.3'}"><b>${SK[k].key}</b>${SK[k].ic}<i>${P.skills[k]||''}</i><div class="cd" id="cd_${k}"></div></div>`).join('');
   const c=$('#char');c.innerHTML=`<h2>Nyx — Shadow Ninja</h2><div class="row"><span>Level</span><span>${P.lvl}</span></div><div class="row"><span>Experience</span><span>${P.xp} / ${xpNeed(P.lvl)}</span></div><div class="row"><span>Gold</span><span>${P.gold}</span></div>
-   <div class="row"><span>Stat points</span><span>${P.pts}</span></div>`+[['str','Strength'],['dex','Dexterity'],['vit','Vitality'],['ene','Energy']].map(([k,n])=>`<div class="row"><span>${n}</span><span>${S[k]}${P.pts?`<button class="plus" data-a="${k}">+</button>`:''}</span></div>`).join('')+
+   <div class="row"><span>Stat points</span><span>${P.pts}</span></div>`+[['str','Strength'],['dex','Dexterity'],['vit','Vitality'],['ene','Energy']].map(([k,n])=>`<div class="row attr"><span>${n}</span><span>${S[k]}${P.pts?`<button class="plus" data-a="${k}">+</button>`:''}</span></div>`).join('')+
    `<br><div class="row"><span>Damage</span><span>${Math.round(S.dmin*(1+S.ed/100))}-${Math.round(S.dmax*(1+S.ed/100))}</span></div><div class="row"><span>Attacks / sec</span><span>${S.aps.toFixed(2)}</span></div><div class="row"><span>Crit chance</span><span>${S.crit.toFixed(1)}%</span></div>
    <div class="row"><span>Defense</span><span>${S.armor}</span></div><div class="row"><span>Life</span><span>${Math.round(S.maxhp)}</span></div><div class="row"><span>Mana</span><span>${Math.round(S.maxmp)}</span></div><div class="row"><span>Life steal</span><span>${S.ll}%</span></div><div class="row"><span>Magic find</span><span>${S.mf}%</span></div><div class="row"><span>Dodge</span><span>${S.dodge}%</span></div>`;
-  c.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{P[b.dataset.a]++;P.pts--;ui();});
+  c.innerHTML+='<p class="small">↑↓ select attribute · Enter spend point · Esc close</p>';c.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{P[b.dataset.a]++;P.pts--;ui();});
   const tr=$('#tree');let th=`<h2>Skill Tree — ${P.sp} point(s)</h2>`;
   for(const t of [1,2,3]){th+=`<div style="color:#998;margin-top:6px">Tier ${t} (level ${TIERLVL[t]})</div>`;for(const k in SK){const s=SK[k];if(s.t!==t)continue;const r=P.skills[k];
     const ok=P.lvl>=TIERLVL[t]&&(!s.req||P.skills[s.req]>0);th+=`<div class="tnode ${ok?'':'locked'}"><h4><span>${s.ic} ${s.n}${s.key?' ['+s.key+']':''}</span><span>${r}/20 ${ok&&P.sp&&r<20?`<button class="plus" data-s="${k}">+</button>`:''}</span></h4><p>${s.d(Math.max(1,r))}</p>${s.req?`<p style="color:#776">Requires ${SK[s.req].n}</p>`:''}</div>`;}}
-  tr.innerHTML=th;tr.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{P.skills[b.dataset.s]++;P.sp--;ui();});
+  th+='<p class="small">↑↓ select · Enter learn · Esc close</p>';tr.innerHTML=th;tr.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{P.skills[b.dataset.s]++;P.sp--;ui();});
   const inv=$('#inv');inv.innerHTML=`<h2>Inventory</h2><div id="equip">${SLOTS.map(([s,n])=>{const it=P.eq[s];return `<div class="eq ${it?'r'+it.r:''}" data-e="${s}">${it?`<span class="ic">${it.base.ic}</span>`:n}</div>`}).join('')}</div>
    <div id="grid">${P.inv.map(it=>`<div class="it r${it.r}" data-i="${it.id}" style="left:${it.x*39}px;top:${it.y*39}px;width:${it.base.w*39-1}px;height:${it.base.h*39-1}px">${it.base.ic}</div>`).join('')}</div>
-   <p class="small">Click item to equip · Right-click to sell · Click equipped to remove · Gold: ${P.gold}</p>`;
+   <p class="small">Arrows select · Enter equip/unequip · X sell/unequip · Esc close · Gold: ${P.gold}</p>`;
   inv.querySelectorAll('[data-e]').forEach(el=>{const s=el.dataset.e;el.onclick=()=>{hideTip();unequip(s);};el.onmouseenter=()=>P.eq[s]&&showTip(P.eq[s],el);el.onmouseleave=hideTip;});
   inv.querySelectorAll('[data-i]').forEach(el=>{const it=P.inv.find(i=>i.id==el.dataset.i);el.onclick=()=>{hideTip();equip(it);};
     el.oncontextmenu=e=>{e.preventDefault();hideTip();P.inv=P.inv.filter(i=>i!==it);P.gold+=it.value;ui();};
-    el.onmouseenter=()=>{const s=it.base.s==='ring'?'ring1':it.base.s,cur=P.eq[s];showTip(it,el,cur?'Currently equipped: '+cur.name:'');};el.onmouseleave=hideTip;});}
-function toggle(id){if(id==='char')$('#tree').classList.add('hidden');if(id==='tree')$('#char').classList.add('hidden');$('#'+id).classList.toggle('hidden');hideTip();}
+    el.onmouseenter=()=>{const s=it.base.s==='ring'?'ring1':it.base.s,cur=P.eq[s];showTip(it,el,cur?'Currently equipped: '+cur.name:'');};el.onmouseleave=hideTip;});navUI();}
+function toggle(id){const el=$('#'+id);const opening=el.classList.contains('hidden');if(id==='char')$('#tree').classList.add('hidden');if(id==='tree')$('#char').classList.add('hidden');el.classList.toggle('hidden');activePanel=opening?id:(['tree','char','inv'].find(p=>!$('#'+p).classList.contains('hidden'))||null);ui();}
 document.querySelectorAll('#btns button').forEach(b=>b.onclick=()=>toggle(b.dataset.p));
 // ---------- input ----------
 const mouse=new THREE.Vector2(),ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);let mdown=false,shift=false,hoverEn=null,mouseWorld=new THREE.Vector3();
@@ -212,10 +212,41 @@ renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
 renderer.domElement.addEventListener('mousedown',e=>{updMouse(e);if(e.button===2){cast('step');return;}mdown=true;P.pickup=null;
   if(hoverEn){P.atkTarget=hoverEn;P.target=null;}else if(shift){P.atkTarget=null;P.target=null;attackAt(mouseWorld);}else{P.atkTarget=null;P.target=mouseWorld.clone();}});
 addEventListener('mouseup',()=>mdown=false);
-addEventListener('keydown',e=>{if(e.key==='Shift')shift=true;const k=e.key.toLowerCase();
-  if(k==='q')cast('step');if(k==='w')cast('smoke');if(k==='e')cast('flurry');if(k==='r')cast('clone');
-  if('1234'.includes(k)&&k)drink(+k-1);if(k==='i')toggle('inv');if(k==='c')toggle('char');if(k==='t'||k==='s')toggle('tree');if(k==='escape')['inv','char','tree'].forEach(i=>$('#'+i).classList.add('hidden'));});
-addEventListener('keyup',e=>{if(e.key==='Shift')shift=false;});
+const keys=new Set();let activePanel=null;const sel={inv:0,tree:0,char:0};
+const KEYMAP={k:'step',u:'smoke',o:'flurry',l:'clone'};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['tab',' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
+  if(k==='shift')shift=true;
+  if($('#title')){if(k==='enter')$('#start').click();return;}
+  if(P.dead){if(k==='enter')respawn();return;}
+  if(activePanel&&['arrowup','arrowdown','arrowleft','arrowright','enter','x','delete','backspace'].includes(k)){panelKey(k);return;}
+  keys.add(k);
+  if(KEYMAP[k]&&!e.repeat)cast(KEYMAP[k]);
+  if((k==='e'||k===' ')&&!e.repeat)pickupNearest();
+  if('1234'.includes(k)&&k.length===1)drink(+k-1);
+  if(k==='tab'||k==='b')toggle('inv');if(k==='c')toggle('char');if(k==='t')toggle('tree');
+  if(k==='escape'){['inv','char','tree'].forEach(i=>$('#'+i).classList.add('hidden'));activePanel=null;hideTip();}});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(k==='shift')shift=false;});
+addEventListener('blur',()=>keys.clear());
+function pickupNearest(){let b=null,bd=2.5;drops.forEach(d=>{const x=d.m.position.distanceTo(P.pos);if(x<bd){bd=x;b=d;}});if(b)tryPickup(b);else msg('Nothing to pick up');}
+function invList(){return [...SLOTS.map(([s])=>({eq:s})),...P.inv.slice().sort((a,b)=>a.y-b.y||a.x-b.x).map(it=>({it}))];}
+function treeList(){return Object.keys(SK);}
+const ATTRS=['str','dex','vit','ene'];
+function panelKey(k){const p=activePanel;
+  if(p==='inv'){const L=invList(),n=L.length;let i=Math.min(sel.inv,n-1);
+    if(k==='arrowright')i++;if(k==='arrowleft')i--;if(k==='arrowdown')i+=i<9?4:3;if(k==='arrowup')i-=i<9?4:3;i=Math.max(0,Math.min(n-1,i));sel.inv=i;const c=L[i];
+    if(k==='enter'){if(c.eq)unequip(c.eq);else equip(c.it);}
+    if(k==='x'||k==='delete'||k==='backspace'){if(c.eq)unequip(c.eq);else{P.inv=P.inv.filter(o=>o!==c.it);P.gold+=c.it.value;msg('Sold for '+c.it.value+' gold');}}}
+  if(p==='tree'){const L=treeList();let i=sel.tree;if(k==='arrowdown'||k==='arrowright')i++;if(k==='arrowup'||k==='arrowleft')i--;sel.tree=(i+L.length)%L.length;
+    if(k==='enter'){const s=SK[L[sel.tree]],key=L[sel.tree];if(P.sp>0&&P.skills[key]<20&&P.lvl>=TIERLVL[s.t]&&(!s.req||P.skills[s.req]>0)){P.skills[key]++;P.sp--;msg(s.n+' rank '+P.skills[key]);}else msg('Cannot learn');}}
+  if(p==='char'){let i=sel.char;if(k==='arrowdown')i++;if(k==='arrowup')i--;sel.char=(i+4)%4;if(k==='enter'&&P.pts>0){P[ATTRS[sel.char]]++;P.pts--;}}
+  ui();}
+function navUI(){hideTip();document.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'));
+  const ii=$('#inv'),tt=$('#tree'),cc=$('#char');
+  if(!ii.classList.contains('hidden')){const L=invList();sel.inv=Math.min(sel.inv,L.length-1);const c=L[sel.inv];const el=c.eq?ii.querySelector(`[data-e="${c.eq}"]`):ii.querySelector(`[data-i="${c.it.id}"]`);
+    if(el){el.classList.add('sel');if(activePanel==='inv'){const it=c.eq?P.eq[c.eq]:c.it;if(it){const s=it.base.s==='ring'?'ring1':it.base.s,cur=!c.eq&&P.eq[s];showTip(it,el,cur?'Currently equipped: '+cur.name:'');}}}}
+  if(!tt.classList.contains('hidden')){const el=tt.querySelectorAll('.tnode')[sel.tree];el&&el.classList.add('sel');el&&el.scrollIntoView({block:'nearest'});}
+  if(!cc.classList.contains('hidden')){const el=cc.querySelectorAll('.attr')[sel.char];el&&el.classList.add('sel');}}
+function respawn(){if(!P.dead)return;$('#death').classList.add('hidden');P.dead=false;recalc();P.hp=S.maxhp;P.mp=S.maxmp;newLevel();ui();}
 function drink(i){const p=P.belt[i];if(!p)return;if(p==='hp')P.hpPot=(P.hpPot||0)+S.maxhp*0.5;else P.mp=Math.min(S.maxmp,P.mp+S.maxmp*0.5);P.belt[i]=null;
   const j=P.belt.indexOf(null);ui();}
 // ---------- combat ----------
@@ -236,7 +267,7 @@ function cast(k){const r=P.skills[k];if(!r||P.dead)return;const s=SK[k];if((P.cd
   if(k==='clone'){P.clones.forEach(c=>scene.remove(c));P.clones=[0,1].map(i=>{const c=ninjaMesh(true);scene.add(c);return c;});P.cloneT=10+Math.floor(r/2);burst(P.pos,0x440088,1.5);msg('Shadow Clone!');}
   P.mp-=s.mana;P.cds[k]=s.cd(r);}
 function hurtPlayer(d){if(P.dead)return;if(Math.random()*100<S.dodge){popText(P.pos,'Dodge','#9cf');return;}d=Math.max(1,Math.round(d*100/(100+S.armor)));P.hp-=d;popText(P.pos,d,'#f44');
-  if(P.hp<=0){P.dead=true;P.hp=0;msg('You have died. Respawning...');const lost=Math.floor(P.gold*0.2);P.gold-=lost;setTimeout(()=>{P.dead=false;recalc();P.hp=S.maxhp;P.mp=S.maxmp;newLevel();ui();},2500);}}
+  if(P.hp<=0){P.dead=true;P.hp=0;const lost=Math.floor(P.gold*0.2);P.gold-=lost;$('#death').classList.remove('hidden');}}
 // ---------- loop ----------
 const clock=new THREE.Clock();const v3=new THREE.Vector3();
 function moveToward(pos,tgt,sp,dt,r){const d=v3.set(tgt.x-pos.x,0,tgt.z-pos.z);const L=d.length();if(L<0.05)return true;d.multiplyScalar(Math.min(L,sp*dt)/L);
@@ -249,6 +280,11 @@ function tick(){requestAnimationFrame(tick);const dt=Math.min(clock.getDelta(),0
   P.atkCd-=dt;for(const k in P.cds)P.cds[k]-=dt;
   if(mdown&&!P.dead&&!P.atkTarget){if(hoverEn)P.atkTarget=hoverEn;else if(shift)attackAt(mouseWorld);else P.target=mouseWorld.clone();}
   const spd=6*(1+S.ms/100);let moving=false;
+  if(!P.dead){const f=(keys.has('w')||keys.has('arrowup')&&!activePanel?1:0)-(keys.has('s')?1:0),r=(keys.has('d')?1:0)-(keys.has('a')?1:0);
+    if(f||r){const dir=new THREE.Vector3(-f+r,0,-f-r).normalize();P.target=null;P.atkTarget=null;P.pickup=null;moveToward(P.pos,P.pos.clone().addScaledVector(dir,1),spd,dt,0.35);moving=true;pMesh.rotation.y=Math.atan2(dir.x,dir.z);}
+    if(keys.has('j')){const fa=pMesh.rotation.y,fd=new THREE.Vector3(Math.sin(fa),0,Math.cos(fa));let best=null,bs=-1;
+      enemies.forEach(e=>{const to=new THREE.Vector3().subVectors(e.g.position,P.pos).setY(0),d=to.length();if(d>12||d<0.01)return;const dot=to.normalize().dot(fd);if(dot>0.5){const sc=dot-d/24;if(sc>bs){bs=sc;best=e;}}});
+      const keep=pMesh.rotation.y;attackAt(best?best.g.position.clone():P.pos.clone().addScaledVector(fd,5));if(moving)pMesh.rotation.y=keep;}}
   if(!P.dead){if(P.atkTarget){if(P.atkTarget.hp<=0||!enemies.includes(P.atkTarget))P.atkTarget=null;else{const ep=P.atkTarget.g.position;
       if(ep.distanceTo(P.pos)>10){moveToward(P.pos,ep,spd,dt,0.35);moving=true;faceTo(ep);}else{attackAt(ep);if(!mdown&&P.atkCd>0.9/S.aps)P.atkTarget=null;}}}
     else if(P.target){moving=!moveToward(P.pos,P.target,spd,dt,0.35);faceTo(P.target);if(!moving)P.target=null;
@@ -256,7 +292,7 @@ function tick(){requestAnimationFrame(tick);const dt=Math.min(clock.getDelta(),0
   // auto gold / potion pickup
   drops.slice().forEach(d=>{if((d.gold)&&d.m.position.distanceTo(P.pos)<1)tryPickup(d);});
   if(stairs&&P.pos.distanceTo(stairs.position)<1&&!P.dead){depth++;newLevel();ui();}
-  pMesh.position.copy(P.pos);pMesh.position.y=moving?Math.abs(Math.sin(t*12))*0.12:0;if(pMesh.userData.spin>0){pMesh.userData.spin-=dt;pMesh.rotation.y+=dt*30;}
+  pMesh.position.copy(P.pos);pMesh.position.y=(moving||P.target)?Math.abs(Math.sin(t*12))*0.12:0;if(pMesh.userData.spin>0){pMesh.userData.spin-=dt;pMesh.rotation.y+=dt*30;}
   ring.visible=!!P.target;if(P.target)ring.position.set(P.target.x,0.03,P.target.z);
   torch.position.set(P.pos.x,4,P.pos.z);camera.position.copy(P.pos).add(CAMOFF);camera.lookAt(P.pos);
   // clones
@@ -289,7 +325,7 @@ function tick(){requestAnimationFrame(tick);const dt=Math.min(clock.getDelta(),0
   $('#mpOrb .fill').style.height=(P.mp/S.maxmp*100)+'%';$('#mpOrb span').textContent=`${Math.floor(P.mp)}/${Math.round(S.maxmp)}`;
   $('#xpbar .fill').style.width=(P.xp/xpNeed(P.lvl)*100)+'%';
   for(const k of ['step','smoke','flurry','clone']){const el=document.getElementById('cd_'+k);if(el)el.style.height=Math.max(0,(P.cds[k]||0)/SK[k].cd(P.skills[k]||1)*100)+'%';}
-  const he=hoverEn;$('#topinfo').innerHTML=he?`<span style="color:${he.champ?'#68f':'#eee'}">${he.name}</span> — ${Math.ceil(he.hp)}/${Math.ceil(he.maxhp)}`:`Depth ${depth} · Level ${P.lvl} · ${P.gold} gold · ${enemies.length} foes${P.pts||P.sp?` · <span style="color:#fc6">${P.pts} stat / ${P.sp} skill pts</span>`:''}`;
+  const he=hoverEn||(()=>{let b=null;enemies.forEach(e=>{if(e.awake&&(!b||e.g.position.distanceTo(P.pos)<b.g.position.distanceTo(P.pos)))b=e;});return b&&b.g.position.distanceTo(P.pos)<12?b:null;})();$('#topinfo').innerHTML=he?`<span style="color:${he.champ?'#68f':'#eee'}">${he.name}</span> — ${Math.ceil(he.hp)}/${Math.ceil(he.maxhp)}`:`Depth ${depth} · Level ${P.lvl} · ${P.gold} gold · ${enemies.length} foes${P.pts||P.sp?` · <span style="color:#fc6">${P.pts} stat / ${P.sp} skill pts</span>`:''}`;
   if(msgT>0){msgT-=dt;if(msgT<=0)$('#msg').textContent='';}
   renderer.render(scene,camera);}
 // ---------- start ----------
