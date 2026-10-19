@@ -235,7 +235,12 @@ function tipHtml(it,cmp){let h=`<div class="n r${it.r}">${it.name}</div><div cla
   for(const k in it.a)h+=`<div class="${it.set?'s':'a'}">${AFF[k][1].replace('{v}',it.a[k])}</div>`;
   if(it.set){h+=`<br><div class="s">${SET.name}</div>`;const n=Object.values(P.eq).filter(i=>i&&i.set).length;
     for(const t in SET.bonus)h+=`<div class="${n>=t?'s':'g'}">(${t} items) ${Object.entries(SET.bonus[t]).map(([k,v])=>AFF[k][1].replace('{v}',v)).join(', ')}</div>`;}
-  h+=`<div class="g">Sell value: ${it.value} gold</div>`;if(cmp)h+=`<div class="g">${cmp}</div>`;return h;}
+  h+=`<div class="g">Sell value: ${it.value} gold</div>`;if(cmp&&cmp.base)h+=compareHtml(it,cmp);else if(cmp===null)h+='<div class="g">Slot empty — pure upgrade</div>';return h;}
+function itemStats(it){const o={};if(it.dmg){o['Avg Damage']=(it.dmg[0]+it.dmg[1])/2;}if(it.ar)o['Defense']=it.ar;for(const k in it.a){const n=AFF[k][0];o[n]=(o[n]||0)+it.a[k];}return o;}
+function compareHtml(it,cur){const a=itemStats(it),b=itemStats(cur);let h=`<div class="cmp"><div class="g">vs equipped: <span class="r${cur.r}">${cur.name}</span></div>`;
+  for(const k of new Set([...Object.keys(a),...Object.keys(b)])){const d=(a[k]||0)-(b[k]||0);if(!d)continue;h+=`<div class="${d>0?'up':'down'}">${d>0?'▲ +':'▼ '}${+d.toFixed(1)} ${k}</div>`;}
+  return h+'</div>';}
+function cmpFor(it,isEq){if(isEq)return false;const s=it.base.s==='ring'?(P.eq.ring1?'ring1':'ring2'):it.base.s;return P.eq[s]||null;}
 function showTip(it,el,cmp){const t=$('#tip');t.innerHTML=tipHtml(it,cmp);t.classList.remove('hidden');const r=el.getBoundingClientRect();
   t.style.left=Math.max(4,Math.min(innerWidth-310,r.left))+'px';t.style.top=Math.max(4,r.top-t.offsetHeight-8)+'px';}
 function hideTip(){$('#tip').classList.add('hidden');}
@@ -255,12 +260,30 @@ function ui(){recalc();
   th+='<p class="small">↑↓ select · Enter learn · Esc close</p>';tr.innerHTML=th;tr.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{P.skills[b.dataset.s]++;P.sp--;ui();});
   const inv=$('#inv');inv.innerHTML=`<h2>Inventory</h2><div id="equip">${SLOTS.map(([s,n])=>{const it=P.eq[s];return `<div class="eq ${it?'r'+it.r:''}" data-e="${s}">${it?`<span class="ic">${it.base.ic}</span>`:n}</div>`}).join('')}</div>
    <div id="grid">${P.inv.map(it=>`<div class="it r${it.r}" data-i="${it.id}" style="left:${it.x*39}px;top:${it.y*39}px;width:${it.base.w*39-1}px;height:${it.base.h*39-1}px">${it.base.ic}</div>`).join('')}</div>
-   <p class="small">Arrows select · Enter equip/unequip · X sell/unequip · Esc close · Gold: ${P.gold}</p>`;
-  inv.querySelectorAll('[data-e]').forEach(el=>{const s=el.dataset.e;el.onclick=()=>{hideTip();unequip(s);};el.onmouseenter=()=>P.eq[s]&&showTip(P.eq[s],el);el.onmouseleave=hideTip;});
-  inv.querySelectorAll('[data-i]').forEach(el=>{const it=P.inv.find(i=>i.id==el.dataset.i);el.onclick=()=>{hideTip();equip(it);};
-    el.oncontextmenu=e=>{e.preventDefault();hideTip();P.inv=P.inv.filter(i=>i!==it);P.gold+=it.value;ui();};
-    el.onmouseenter=()=>{const s=it.base.s==='ring'?'ring1':it.base.s,cur=P.eq[s];showTip(it,el,cur?'Currently equipped: '+cur.name:'');};el.onmouseleave=hideTip;});navUI();}
-function toggle(id){const el=$('#'+id);const opening=el.classList.contains('hidden');if(innerWidth<1340&&id==='char')$('#tree').classList.add('hidden');if(innerWidth<1340&&id==='tree')$('#char').classList.add('hidden');el.classList.toggle('hidden');activePanel=opening?id:(['tree','char','inv'].find(p=>!$('#'+p).classList.contains('hidden'))||null);ui();}
+   <p class="small">Arrows select · Enter / click opens menu · ↑↓ + Enter choose · Esc closes menu, then panel · Gold: ${P.gold}</p>`;
+  inv.querySelectorAll('[data-e]').forEach((el,idx)=>{const s=el.dataset.e;el.onclick=e=>{e.stopPropagation();sel.cur={a:'eq',x:idx%4,y:Math.floor(idx/4)};activePanel='inv';navUI();if(P.eq[s])openMenu();};
+    el.onmouseenter=()=>P.eq[s]&&!menu&&showTip(P.eq[s],el,false);el.onmouseleave=()=>!menu&&navUI();});
+  inv.querySelectorAll('[data-i]').forEach(el=>{const it=P.inv.find(i=>i.id==el.dataset.i);el.onclick=e=>{e.stopPropagation();sel.cur={a:'bag',x:it.x,y:it.y};activePanel='inv';navUI();openMenu();};
+    el.oncontextmenu=e=>{e.preventDefault();e.stopPropagation();sel.cur={a:'bag',x:it.x,y:it.y};activePanel='inv';navUI();openMenu();};
+    el.onmouseenter=()=>!menu&&showTip(it,el,cmpFor(it));el.onmouseleave=()=>!menu&&navUI();});
+  inv.oncontextmenu=e=>e.preventDefault();inv.onmousedown=e=>e.stopPropagation();navUI();}
+let menu=null;
+function openMenu(focus){const c=sel.cur,it=selItem();if(!it)return;closeMenu();const isEq=c.a==='eq';
+  const opts=[[isEq?'Unequip':'Equip',isEq?'unequip':'equip'],['Sell ('+it.value+'g)','sell'],['Cancel','cancel']];
+  const el=document.createElement('div');el.id='ctx';el.innerHTML=opts.map(([l,a],i)=>`<div class="opt" data-o="${a}">${l}</div>`).join('');document.body.appendChild(el);
+  const anchor=document.querySelector('#inv .sel')||$('#inv');const r=anchor.getBoundingClientRect();
+  el.style.left=Math.min(innerWidth-130,r.right+4)+'px';el.style.top=Math.min(innerHeight-110,r.top)+'px';
+  menu={el,opts,i:focus==='sell'?1:0,it,isEq,slot:isEq?selSlot():null};
+  el.querySelectorAll('.opt').forEach((o,i)=>{o.onmousedown=e=>e.stopPropagation();o.onclick=e=>{e.stopPropagation();menu.i=i;confirmMenu();};o.onmouseenter=()=>{menu.i=i;drawMenu();};});
+  drawMenu();showTip(it,anchor,cmpFor(it,isEq));const t=$('#tip');t.style.left=Math.max(4,r.left-t.offsetWidth-8)+'px';t.style.top=Math.max(4,r.top)+'px';}
+function drawMenu(){menu.el.querySelectorAll('.opt').forEach((o,i)=>o.classList.toggle('on',i===menu.i));}
+function closeMenu(){if(menu){menu.el.remove();menu=null;}}
+function confirmMenu(){const m=menu;const a=m.opts[m.i][1];closeMenu();
+  if(a==='equip')equip(m.it);else if(a==='unequip')unequip(m.slot);
+  else if(a==='sell'){if(m.isEq){delete P.eq[m.slot];recalc();}else P.inv=P.inv.filter(o=>o!==m.it);P.gold+=m.it.value;msg('Sold '+m.it.name+' for '+m.it.value+' gold');}
+  ui();}
+document.addEventListener('mousedown',e=>{if(menu&&!menu.el.contains(e.target)){closeMenu();navUI();}});
+function toggle(id){closeMenu();const el=$('#'+id);const opening=el.classList.contains('hidden');if(innerWidth<1340&&id==='char')$('#tree').classList.add('hidden');if(innerWidth<1340&&id==='tree')$('#char').classList.add('hidden');el.classList.toggle('hidden');activePanel=opening?id:(['tree','char','inv'].find(p=>!$('#'+p).classList.contains('hidden'))||null);ui();}
 document.querySelectorAll('#btns button').forEach(b=>b.onclick=()=>toggle(b.dataset.p));
 // ---------- input ----------
 const mouse=new THREE.Vector2(),ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);let mdown=false,shift=false,hoverEn=null,mouseWorld=new THREE.Vector3();
@@ -281,6 +304,7 @@ addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=
   if(k==='shift')shift=true;
   if($('#title')){if(k==='enter')$('#start').click();return;}
   if(P.dead){if(k==='enter')respawn();return;}
+  if(menu){if(k==='arrowup'||k==='arrowleft'){menu.i=(menu.i+2)%3;drawMenu();}if(k==='arrowdown'||k==='arrowright'){menu.i=(menu.i+1)%3;drawMenu();}if(k==='enter')confirmMenu();if(k==='escape'){closeMenu();navUI();}return;}
   if(activePanel&&['arrowup','arrowdown','arrowleft','arrowright','enter','x','delete','backspace'].includes(k)){panelKey(k);return;}
   keys.add(k);
   if(KEYMAP[k]&&!e.repeat)cast(KEYMAP[k]);
@@ -303,8 +327,8 @@ function panelKey(k){const p=activePanel;
     else{if(k==='arrowright')c.x=Math.min(GW-1,c.x+1);if(k==='arrowleft')c.x=Math.max(0,c.x-1);if(k==='arrowdown')c.y=Math.min(GH-1,c.y+1);
       if(k==='arrowup'){if(c.y>0)c.y--;else{c.a='eq';c.x=Math.min(3,Math.round(c.x/3));c.y=c.x===0?2:1;}}}
     const it=selItem();
-    if(k==='enter'){if(c.a==='eq')unequip(selSlot());else if(it)equip(it);}
-    if(k==='x'||k==='delete'||k==='backspace'){if(c.a==='eq')unequip(selSlot());else if(it){P.inv=P.inv.filter(o=>o!==it);P.gold+=it.value;msg('Sold for '+it.value+' gold');}}}
+    if(k==='enter'&&it){navUI();openMenu();return;}
+    if((k==='x'||k==='delete'||k==='backspace')&&it){navUI();openMenu('sell');return;}}
   if(p==='tree'){const L=treeList();let i=sel.tree;if(k==='arrowdown'||k==='arrowright')i++;if(k==='arrowup'||k==='arrowleft')i--;sel.tree=(i+L.length)%L.length;
     if(k==='enter'){const s=SK[L[sel.tree]],key=L[sel.tree];if(P.sp>0&&P.skills[key]<20&&P.lvl>=TIERLVL[s.t]&&(!s.req||P.skills[s.req]>0)){P.skills[key]++;P.sp--;msg(s.n+' rank '+P.skills[key]);}else msg('Cannot learn');}}
   if(p==='char'){let i=sel.char;if(k==='arrowdown')i++;if(k==='arrowup')i--;sel.char=(i+4)%4;if(k==='enter'&&P.pts>0){P[ATTRS[sel.char]]++;P.pts--;}}
@@ -313,7 +337,7 @@ function navUI(){hideTip();document.querySelectorAll('.sel').forEach(e=>e.classL
   const ii=$('#inv'),tt=$('#tree'),cc=$('#char');
   if(!ii.classList.contains('hidden')){const c=sel.cur,it=selItem();let el;
     if(c.a==='eq')el=ii.querySelector(`[data-e="${selSlot()}"]`);else{const cur=document.createElement('div');cur.className='cursor sel';cur.style.cssText=`left:${c.x*39}px;top:${c.y*39}px`;ii.querySelector('#grid').appendChild(cur);el=it?ii.querySelector(`[data-i="${it.id}"]`):cur;el.classList.add('sel');}
-    if(el){el.classList.add('sel');if(activePanel==='inv'&&it){const s=it.base.s==='ring'?'ring1':it.base.s,cur=c.a==='bag'&&P.eq[s];showTip(it,el,cur?'Currently equipped: '+cur.name:'');}}}
+    if(el){el.classList.add('sel');if(activePanel==='inv'&&it)showTip(it,el,cmpFor(it,c.a==='eq'));}}
   if(!tt.classList.contains('hidden')){const el=tt.querySelectorAll('.tnode')[sel.tree];el&&el.classList.add('sel');el&&el.scrollIntoView({block:'nearest'});}
   if(!cc.classList.contains('hidden')){const el=cc.querySelectorAll('.attr')[sel.char];el&&el.classList.add('sel');}}
 function respawn(){if(!P.dead)return;const ch=pMesh.userData.ch;if(ch){ch.cur=null;ch.lock=0;ch.mixer.stopAllAction();play(ch,'Idle');}$('#death').classList.add('hidden');P.dead=false;recalc();P.hp=S.maxhp;P.mp=S.maxmp;newLevel();ui();}
@@ -414,4 +438,4 @@ recalc();P.eq.weapon=makeItem(1,0,0);P.eq.weapon.base=BASES[0];P.eq.weapon.name=
 newLevel();ui();tick();
 $('#start').onclick=()=>{$('#title').remove();running=true;clock.getDelta();renderer.domElement.focus();};$('#start').disabled=false;$('#start').textContent='Enter the Depths';
 let frames=0;(function fc(){frames++;requestAnimationFrame(fc);})();
-window.__game={los:(a,b)=>los(a,b),hurt:d=>hurtPlayer(d),selCur:()=>sel.cur,grid:()=>grid,stairs:()=>stairs,drops:()=>drops,depth:()=>depth,frames:()=>frames,info:()=>({geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs.length,children:scene.children.length,labels:$('#labels').children.length}),P,enemies:()=>enemies,cast,attackAt,start:()=>$('#start').click(),makeItem,placeInv,ui,dropItem};
+window.__game={ap:()=>activePanel,los:(a,b)=>los(a,b),hurt:d=>hurtPlayer(d),selCur:()=>sel.cur,grid:()=>grid,stairs:()=>stairs,drops:()=>drops,depth:()=>depth,frames:()=>frames,info:()=>({geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs.length,children:scene.children.length,labels:$('#labels').children.length}),P,enemies:()=>enemies,cast,attackAt,start:()=>$('#start').click(),makeItem,placeInv,ui,dropItem};
