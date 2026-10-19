@@ -21,7 +21,10 @@
 <div id="tree" class="panel left hidden"></div>
 <div id="inv" class="panel right hidden"></div>
 <div id="tip" class="hidden"></div><div id="lvlup" class="hidden"></div><div id="flash"></div><div id="death" class="hidden"><h1>YOU HAVE DIED</h1><p>You lost 20% of your gold.</p><p>Press <b>Enter</b> to rise again</p></div>
-<div id="title"><h1>ASHEN REIGN</h1><p>Nyx — The Shadow Ninja</p><button id="start" disabled>Loading…</button>
-<p class="small">Press <b>Enter</b> to begin</p><p class="small" style="opacity:.6">3D characters: KayKit by Kay Lousberg (CC0)</p><p class="small">WASD move · J attack (hold) · K Shadow Step · U Smoke Bomb · O Blade Flurry · L Shadow Clone<br>E/Space pick up · 1-4 potions · Tab/B inventory · C character · T skills · arrows+Enter in panels · Esc close · walk into the purple portal to descend</p></div>
+<div id="title"><canvas id="embers"></canvas><div class="tvig"></div><div class="tbox"><div class="crest"><span></span>✦<span></span></div><h1 data-t="ASHEN REIGN">ASHEN REIGN</h1><div class="sub">Nyx — The Shadow Ninja</div>
+<div id="tmenu" class="vm"></div><div id="tset" class="vm hidden"></div><button id="start" disabled hidden>Loading</button><p id="tload" class="small">Loading…</p>
+<p class="small hint">↑↓ / W S select · Enter confirm · Esc back</p><p class="small credits">WASD move · J attack · K Step · U Smoke · O Flurry · L Clone · E pick up · 1-4 potions · Tab inventory · C character · T skills · Esc pause<br>3D characters: KayKit by Kay Lousberg (CC0)</p></div></div>
+<div id="pause" class="hidden"><div class="pbox"><h2>Paused</h2><div id="pmenu" class="vm"></div><p class="small">↑↓ select · Enter confirm · Esc resume</p></div></div>
+<div id="modal" class="hidden"></div><div id="toast"></div>
 <script type="module" src="game.js"></script>
 </body></html>
