@@ -226,10 +226,11 @@ async function loadTown(){await Promise.all(TOWN_ASSETS.map(n=>new Promise(res=>
   g.scene.traverse(o=>{if(o.isMesh){o.geometry.userData.shared=true;const m=o.material.clone();if(m.map)m.map=townTexture(m.map);m.roughness=0.9;m.metalness=0;m.userData.shared=true;parts.push({geo:o.geometry,mat:m,mw:o.matrixWorld.clone()});}});
   const box=new THREE.Box3().setFromObject(g.scene);TOWNP[n]={parts,box};res();},undefined,()=>res()))));}
 const TC=56; // plaza centre (world units)
+function nearFree(x,z){if(free(x,z,0.4))return [x,z];for(let r=0.5;r<20;r+=0.5)for(let a=0;a<16;a++){const nx=x+Math.cos(a*0.3927)*r,nz=z+Math.sin(a*0.3927)*r;if(free(nx,nz,0.4))return [nx,nz];}return [x,z];}
 function walkTown(i,j){return i>=20&&i<=35&&j>=20&&j<=35;}
-const TOWN={spawn:[60,63],portal:[67,45],npcs:[
+const TOWN={spawn:[59,67],portal:[67,45],npcs:[
   {id:'smith',n:'Garran the Smith',role:'Blacksmith',x:45.5,z:45,tint:0x8a5a3a,face:0.6},
-  {id:'trader',n:'Ysolde the Trader',role:'Equipment',x:58,z:44,tint:0x4a5a8a,face:0},
+  {id:'trader',n:'Ysolde the Trader',role:'Equipment',x:59,z:46.2,tint:0x4a5a8a,face:0},
   {id:'alch',n:'Old Maren',role:'Potions',x:44.5,z:57,tint:0x6a3a7a,face:Math.PI/2}]};
 function buildTown(){if(levelGroup)disposeObj(levelGroup);levelGroup=new THREE.Group();scene.add(levelGroup);townFires=[];
   grid=[];for(let i=0;i<N;i++){grid.push(new Array(N).fill(0));for(let j=0;j<N;j++)if(walkTown(i,j))grid[i][j]=1;}
@@ -275,16 +276,16 @@ function buildTown(){if(levelGroup)disposeObj(levelGroup);levelGroup=new THREE.G
   npcs.forEach(n=>{n.plate&&n.plate.remove();});npcs=[];
   TOWN.npcs.forEach(d=>{const g=new THREE.Group();g.position.set(d.x,0,d.z);g.rotation.y=d.face;let ch=null;
     if(MODELS.rogue){ch=makeChar('rogue',1.9,mm=>{mm.color.setHex(d.tint);});g.add(ch.o);play(ch,'Idle');ch.mixer.update(Math.random());}
-    levelGroup.add(g);block(d.x,d.z,0.5);const plate=document.createElement('div');plate.className='plate npc';plate.innerHTML=`<span>${d.n}</span><small>${d.role}</small>`;$('#labels').appendChild(plate);npcs.push({...d,g,ch,plate});});
+    levelGroup.add(g);const plate=document.createElement('div');plate.className='plate npc';plate.innerHTML=`<span>${d.n}</span><small>${d.role}</small>`;$('#labels').appendChild(plate);npcs.push({...d,g,ch,plate});});
   flow=null;}
 function townLighting(on){scene.background.setHex(on?0x070a12:0x050403);scene.fog.color.setHex(on?0x070a12:0x050403);scene.fog.near=on?24:18;scene.fog.far=on?60:42;moon.color.setHex(on?0x6f8ad8:0x8090c0);moon.intensity=on?1.25:0.9;}
 function updTown(dt,t){npcs.forEach(n=>{if(n.ch)n.ch.mixer.update(dt);project(v4.copy(n.g.position).setY(2.6),n.plate);});
   townFires.forEach((f,k)=>{if(f.l)f.l.intensity=f.base*(0.85+0.15*Math.sin(t*9+k*1.7)+0.08*Math.sin(t*23+k));if(f.big&&Math.random()<0.7)particle(v4.set(f.p.x+R(-0.4,0.4),0.4,f.p.z+R(-0.4,0.4)),Math.random()<0.5?0xff8a20:0xffd060,0.35,0.8,1.2,2.2);});
-  nearNpc=null;let bd=2.6;npcs.forEach(n=>{const d=n.g.position.distanceTo(P.pos);if(d<bd){bd=d;nearNpc=n;}});
+  nearNpc=null;let bd=3;npcs.forEach(n=>{const d=n.g.position.distanceTo(P.pos);if(d<0.75&&d>1e-3){const px=n.g.position.x+(P.pos.x-n.g.position.x)/d*0.75,pz=n.g.position.z+(P.pos.z-n.g.position.z)/d*0.75;if(free(px,pz))P.pos.set(px,0,pz);}if(d<bd){bd=d;nearNpc=n;}});
   const pr=$('#prompt');if(nearNpc&&!shop){pr.innerHTML=`<kbd>E</kbd> Talk to ${nearNpc.n}`;pr.classList.remove('hidden');}else pr.classList.add('hidden');
   if(stairs){const on=P.pos.distanceTo(stairs.position)<1.2;if(on&&!portalLatch&&!P.dead){portalLatch=true;portalChoice();}if(!on)portalLatch=false;}}
 // travel
-function enterTown(fromDungeon){clearLevel();inTown=true;townLighting(true);buildTown();P.pos.set(TOWN.spawn[0],0,TOWN.spawn[1]);camFocus.copy(P.pos);P.vel&&P.vel.set(0,0,0);P.target=null;P.atkTarget=null;P.grace=1;portalLatch=false;
+function enterTown(fromDungeon){clearLevel();inTown=true;townLighting(true);buildTown();{const sp=nearFree(TOWN.spawn[0],TOWN.spawn[1]);P.pos.set(sp[0],0,sp[1]);}camFocus.copy(P.pos);P.vel&&P.vel.set(0,0,0);P.target=null;P.atkTarget=null;P.grace=1;portalLatch=false;
   if(fromDungeon||!merchStock.length)refreshStock();revealFog(true);msg('The Fallen Sanctuary');ui();}
 function enterDungeon(d,seed){npcs.forEach(n=>n.plate.remove());npcs=[];$('#prompt').classList.add('hidden');closeShop();inTown=false;townLighting(false);depth=d;P.deepest=Math.max(P.deepest||1,d);
   const fs=P.floorState;const same=fs&&fs.depth===d&&seed==null;newLevel(seed??(same?fs.seed:undefined));if(!same||fs.seed!==floorSeed)P.floorState={depth:d,seed:floorSeed,opened:[]};else P.floorState.opened.forEach(i=>{const c=chests[i];if(c){c.opened=true;c.g.visible=false;}});portalLatch=true;ui();}
