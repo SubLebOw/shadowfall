@@ -156,3 +156,4 @@ body.intitle #hud,body.intitle #minimap,body.intitle #topinfo,body.intitle #msg,
 .cost{margin-top:4px;font-family:'Cinzel',serif}.qty{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0}.qty b{font-size:18px;min-width:24px;color:#fff}.qty span{color:#998a6a;font-size:12px}
 .sbtns{display:flex;gap:10px;justify-content:center;margin-top:8px}.empty{padding:14px;color:#998a6a;text-align:center;font-style:italic}
 .mbox .cmpt{margin-bottom:8px}
+.sdet{flex:0 1 auto;max-height:200px;overflow-y:auto;min-height:60px}.slist{flex:1 1 auto;min-height:90px}.sbtns{flex:0 0 auto}
