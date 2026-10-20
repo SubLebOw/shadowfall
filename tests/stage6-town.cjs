@@ -7,7 +7,7 @@ const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('
 const G=(f,a)=>p.evaluate(f,a);const W=ms=>p.waitForTimeout(ms);const key=async k=>{await p.keyboard.press(k);await W(250);};
 const click=async sel=>{const el=await p.waitForSelector(sel,{state:'visible',timeout:5000});const bb=await el.boundingBox();await p.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2,{steps:3});await p.mouse.click(bb.x+bb.width/2,bb.y+bb.height/2);await W(300);};
 const mbtn=async t=>click(`#modal button:text-is("${t}")`);
-await p.goto(URL);await G(()=>localStorage.clear());await p.reload();await p.waitForFunction(()=>!document.querySelector('#start').disabled,null,{timeout:120000});
+await p.goto(URL);await p.waitForFunction(()=>!document.querySelector('#start').disabled,null,{timeout:120000});await G(()=>localStorage.clear());await p.reload();await p.waitForFunction(()=>!document.querySelector('#start').disabled,null,{timeout:120000});
 await key('Enter');await W(1500);
 ok(await G(()=>__game.inTown()&&__game.npcs().length===3),'new character starts in town with 3 NPCs');
 // J/K/L disabled in town

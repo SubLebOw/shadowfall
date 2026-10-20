@@ -157,3 +157,26 @@ body.intitle #hud,body.intitle #minimap,body.intitle #topinfo,body.intitle #msg,
 .sbtns{display:flex;gap:10px;justify-content:center;margin-top:8px}.empty{padding:14px;color:#998a6a;text-align:center;font-style:italic}
 .mbox .cmpt{margin-bottom:8px}
 .sdet{flex:0 1 auto;max-height:200px;overflow-y:auto;min-height:60px}.slist{flex:1 1 auto;min-height:90px}.sbtns{flex:0 0 auto}
+#death{background:radial-gradient(ellipse at center,rgba(30,4,4,.82),rgba(0,0,0,.94));pointer-events:auto}#death .dbox{text-align:center;padding:28px 46px;border:1px solid #6b4a1c;background:rgba(10,5,3,.85);box-shadow:0 0 40px rgba(120,0,0,.5),inset 0 0 30px rgba(0,0,0,.8)}
+#death h1{font-family:'Cinzel',serif;color:#b01818;font-size:54px;letter-spacing:6px;margin:6px 0 10px;text-shadow:0 0 18px rgba(200,0,0,.6)}#death p{color:#d8c49a;margin:8px 0}#death .gold{color:#ffcf4a}
+#respawn{margin-top:14px;font-family:'Cinzel',serif;font-size:18px;padding:10px 26px;color:#f0d890;background:linear-gradient(#3a1a0c,#1a0a04);border:1px solid #c8a050;cursor:pointer}#respawn:hover{background:linear-gradient(#5a2a12,#2a1006);box-shadow:0 0 12px rgba(200,160,80,.5)}
+/* ---- rarity palette (single source; mirrors RCOL in game.js) ---- */
+:root{--r0:#c8c8c8;--r1:#4f8cff;--r2:#ffe14a;--r3:#3ddc5a;--r4:#ff6a00}
+.r0{color:var(--r0);border-color:#8a8a8a}.r1{color:var(--r1);border-color:var(--r1)}.r2{color:var(--r2);border-color:var(--r2)}.r3{color:var(--r3);border-color:var(--r3)}.r4{color:var(--r4);border-color:var(--r4)}
+.lbl.r0{color:var(--r0)}.lbl.r1{color:var(--r1);border-color:rgba(79,140,255,.6)}.lbl.r2{color:var(--r2);border-color:rgba(255,225,74,.6)}.lbl.r3{color:var(--r3);border-color:rgba(61,220,90,.6)}.lbl.r4{color:var(--r4);border-color:rgba(255,106,0,.7)}
+.eq.r1,.it.r1{box-shadow:inset 0 0 12px rgba(79,140,255,.45)}.eq.r2,.it.r2{box-shadow:inset 0 0 14px rgba(255,225,74,.4)}.eq.r3,.it.r3{box-shadow:inset 0 0 14px rgba(61,220,90,.45)}
+#tip .a{color:var(--r1)}#tip .s{color:var(--r3)}
+@keyframes upulse{0%,100%{box-shadow:inset 0 0 12px rgba(255,106,0,.45),0 0 4px rgba(255,106,0,.35)}50%{box-shadow:inset 0 0 18px rgba(255,106,0,.75),0 0 10px rgba(255,106,0,.6)}}
+@keyframes utext{0%,100%{text-shadow:0 0 3px rgba(255,106,0,.4)}50%{text-shadow:0 0 9px rgba(255,106,0,.85)}}
+.eq.r4,.it.r4,.lbl.r4,.srow .sic.r4{animation:upulse 2.4s ease-in-out infinite}#tip .n.r4,.lbl.r4,.snm.r4{animation:utext 2.4s ease-in-out infinite}
+.lbl.r4{animation:upulse 2.4s ease-in-out infinite,utext 2.4s ease-in-out infinite}
+/* ---- inventory polish (compact) ---- */
+#inv{width:414px;padding-bottom:8px}#inv h2{margin:0 0 4px}
+#equip{grid-template-columns:repeat(3,58px);grid-auto-rows:58px;gap:6px 18px;margin:2px auto 8px;padding:6px 0}
+.eq{width:58px;height:58px}.eq .ic{font-size:24px;margin-bottom:7px}.eq small{font-size:8px;bottom:1px}
+.bagh{margin:0 2px 3px;font-size:12px}
+.sellrow{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}.sellrow button{font-size:12px;padding:4px 10px}
+button.danger{background:linear-gradient(#5a1010,#2a0606)!important;border-color:#a33!important;color:#f3c0b0!important}button.danger:hover{border-color:#f55!important;color:#fff!important;box-shadow:0 0 8px rgba(255,60,40,.5)}
+#dlg.danger{box-shadow:0 0 0 2px #1d0a0a,0 0 0 4px #a03030,0 0 0 6px #1d0a0a,0 10px 40px #000}#dlg.danger h3{color:#ff7a5a}#dlg .warn{color:#ff9a7a;margin:6px 0}
+#inv p.small{margin:4px 0 0}
+#tip .cmp div{line-height:1.25}#tip{max-width:280px;padding:6px 10px;font-size:14px}
