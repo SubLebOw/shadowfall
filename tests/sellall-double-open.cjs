@@ -1,0 +1,12 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto(process.argv[2]+'?low');await p.waitForFunction(()=>window.__game&&!document.querySelector('#start').disabled,null,{timeout:120000});await p.keyboard.press('Enter');await p.waitForTimeout(1200);
+const g=f=>p.evaluate(f);const pos=sel=>g(new Function(`const e=document.querySelector(${JSON.stringify(sel)});if(!e)return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]`));
+await g(()=>{const G=window.__game;G.P.inv.length=0;for(let i=0;i<4;i++)G.placeInv(G.makeItem(3,0,0));});
+const st=()=>g(()=>({dlgs:document.querySelectorAll('#dlg').length,inv:window.__game.P.inv.length,focus:document.activeElement.id||document.activeElement.tagName}));
+await p.keyboard.press('Tab');await p.waitForTimeout(300);let c=await pos('#sellall');await p.mouse.click(...c);await p.waitForTimeout(200);console.log('open',JSON.stringify(await st()));
+c=await pos('#sellall');await p.mouse.click(...c);await p.waitForTimeout(200);console.log('2nd click',JSON.stringify(await st()));
+await p.keyboard.press('ArrowLeft');await p.keyboard.press('Enter');await p.waitForTimeout(200);console.log('kb confirm',JSON.stringify(await st()));
+await g(()=>{const G=window.__game;for(let i=0;i<4;i++)G.placeInv(G.makeItem(3,0,0));G.ui();});c=await pos('#sellall');await p.mouse.dblclick(...c);await p.waitForTimeout(200);console.log('dblclick',JSON.stringify(await st()));
+let d=await pos('#dlg [data-d="0"]');await p.mouse.click(...d);await p.waitForTimeout(200);console.log('cancel',JSON.stringify(await st()));
+d=await pos('#dlg [data-d="0"]');if(d){await p.mouse.click(...d);await p.waitForTimeout(200);}await p.keyboard.press('Enter');await p.waitForTimeout(200);console.log('cancel again+enter',JSON.stringify(await st()));
+console.log('ERR',errs);await b.close();})();

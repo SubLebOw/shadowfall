@@ -420,20 +420,20 @@ function ui(){document.querySelectorAll('#btns button').forEach(b=>b.classList.t
   inv.oncontextmenu=e=>e.preventDefault();inv.querySelector('#sellall').onclick=e=>{e.stopPropagation();openSellAll();};inv.onmousedown=e=>e.stopPropagation();navUI();}
 let menu=null,dlg=null;
 function sellable(){return P.inv.filter(it=>it.r===0||it.r===1);}
-function openSellAll(){closeMenu();hideTip();const L=sellable();if(!L.length){msg('Nothing to sell (only Normal & Magic items are sold)');return;}
+function openSellAll(){closeMenu();hideTip();closeDlg();document.querySelectorAll('#dlg').forEach(e=>e.remove());const L=sellable();if(!L.length){msg('Nothing to sell (only Normal & Magic items are sold)');return;}
   const tot=L.reduce((a,i)=>a+i.value,0);const el=document.createElement('div');el.id='dlg';
   el.innerHTML=`<h3>Sell All</h3><p>Sell <b>${L.length}</b> Normal/Magic item${L.length>1?'s':''} for <b style="color:#ddc060">${tot} gold</b>?</p><p class="small">Equipped, Rare, Set and Unique items are kept.</p><div class="dbtn"><button data-d="1">Confirm</button><button data-d="0">Cancel</button></div>`;
-  document.body.appendChild(el);dlg={el,i:1,items:L,tot};el.onmousedown=e=>e.stopPropagation();el.querySelectorAll('[data-d]').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();dlg.i=i;confirmDlg();};b.onmouseenter=()=>{dlg.i=i;drawDlg();};});drawDlg();}
+  document.body.appendChild(el);dlg={el,i:1,items:L,tot};el.onmousedown=e=>e.stopPropagation();el.querySelectorAll('[data-d]').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(!dlg)return;dlg.i=i;confirmDlg();};b.onmousemove=()=>{if(dlg&&dlg.i!==i){dlg.i=i;drawDlg();}};});drawDlg();}
 function drawDlg(){dlg.el.querySelectorAll('[data-d]').forEach((b,i)=>b.classList.toggle('on',i===dlg.i));}
-function closeDlg(){if(dlg){dlg.el.remove();dlg=null;}}
-function confirmDlg(){const d=dlg;closeDlg();if(d.i===0){const ids=new Set(d.items.map(i=>i.id));P.inv=P.inv.filter(i=>!ids.has(i.id));P.gold+=d.tot;msg(`Sold ${d.items.length} items for ${d.tot} gold`);}ui();}
+function closeDlg(){if(dlg){dlg.el.remove();dlg=null;}document.querySelectorAll('#dlg').forEach(e=>e.remove());}
+function confirmDlg(){const d=dlg;if(!d)return;closeDlg();if(d.i===0){const ids=new Set(d.items.map(i=>i.id));P.inv=P.inv.filter(i=>!ids.has(i.id));P.gold+=d.tot;msg(`Sold ${d.items.length} items for ${d.tot} gold`);}ui();}
 function openMenu(focus){const c=sel.cur,it=selItem();if(!it)return;closeMenu();const isEq=c.a==='eq';
   const opts=[[isEq?'Unequip':'Equip',isEq?'unequip':'equip'],['Sell ('+it.value+'g)','sell'],['Cancel','cancel']];
   const el=document.createElement('div');el.id='ctx';el.innerHTML=opts.map(([l,a],i)=>`<div class="opt" data-o="${a}">${l}</div>`).join('');document.body.appendChild(el);
   const anchor=document.querySelector('#inv .sel')||$('#inv');const r=anchor.getBoundingClientRect();
   el.style.left=Math.min(innerWidth-130,r.right+4)+'px';el.style.top=Math.min(innerHeight-110,r.top)+'px';
   menu={el,opts,i:focus==='sell'?1:0,it,isEq,slot:isEq?selSlot():null};
-  el.querySelectorAll('.opt').forEach((o,i)=>{o.onmousedown=e=>e.stopPropagation();o.onclick=e=>{e.stopPropagation();menu.i=i;confirmMenu();};o.onmouseenter=()=>{menu.i=i;drawMenu();};});
+  el.querySelectorAll('.opt').forEach((o,i)=>{o.onmousedown=e=>e.stopPropagation();o.onclick=e=>{e.stopPropagation();menu.i=i;confirmMenu();};o.onmousemove=()=>{if(menu&&menu.i!==i){menu.i=i;drawMenu();}};});
   drawMenu();showTip(it,anchor,cmpFor(it,isEq));const t=$('#tip');t.style.left=Math.max(4,r.left-t.offsetWidth-8)+'px';t.style.top=Math.max(4,r.top)+'px';}
 function drawMenu(){menu.el.querySelectorAll('.opt').forEach((o,i)=>o.classList.toggle('on',i===menu.i));}
 function closeMenu(){if(menu){menu.el.remove();menu=null;}}
@@ -441,7 +441,7 @@ function confirmMenu(){const m=menu;const a=m.opts[m.i][1];closeMenu();
   if(a==='equip')equip(m.it);else if(a==='unequip')unequip(m.slot);
   else if(a==='sell'){if(m.isEq){delete P.eq[m.slot];recalc();}else P.inv=P.inv.filter(o=>o!==m.it);P.gold+=m.it.value;msg('Sold '+m.it.name+' for '+m.it.value+' gold');}
   ui();}
-document.addEventListener('mousedown',e=>{if(menu&&!menu.el.contains(e.target)){closeMenu();navUI();}if(dlg&&!dlg.el.contains(e.target))closeDlg();});
+document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('button'))e.preventDefault();if(menu&&!menu.el.contains(e.target)){closeMenu();navUI();}if(dlg&&!dlg.el.contains(e.target))closeDlg();});
 function toggle(id){closeMenu();closeDlg();const el=$('#'+id);const opening=el.classList.contains('hidden');if(opening)['char','tree','inv'].forEach(p=>p!==id&&$('#'+p).classList.add('hidden'));el.classList.toggle('hidden');activePanel=opening?id:(['tree','char','inv'].find(p=>!$('#'+p).classList.contains('hidden'))||null);ui();}
 document.querySelectorAll('#btns button').forEach(b=>b.onclick=()=>toggle(b.dataset.p));
 // ---------- input ----------
@@ -459,14 +459,14 @@ function selItem(){const c=sel.cur;if(c.a==='eq')return P.eq[selSlot()];return P
 const KEYMAP={k:'step',u:'smoke',o:'flurry',l:'clone'};
 const codeKey=e=>{const c=e.code||'';if(c.startsWith('Key'))return c.slice(3).toLowerCase();if(c.startsWith('Digit'))return c.slice(5);if(c.startsWith('Numpad')&&/\d/.test(c[6]))return c[6];
   return {Space:' ',Tab:'tab',Enter:'enter',NumpadEnter:'enter',Escape:'escape',ArrowUp:'arrowup',ArrowDown:'arrowdown',ArrowLeft:'arrowleft',ArrowRight:'arrowright',ShiftLeft:'shift',ShiftRight:'shift',Delete:'delete',Backspace:'backspace'}[c]||(e.key||'').toLowerCase();};
-addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=codeKey(e);if(['tab',' ','arrowup','arrowdown','arrowleft','arrowright','backspace'].includes(k)||/^[a-z0-9]$/.test(k))e.preventDefault();
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=codeKey(e);if(k==='enter'||k==='escape')e.preventDefault();if(document.activeElement&&document.activeElement!==document.body&&document.activeElement.tagName==='BUTTON')document.activeElement.blur();if(['tab',' ','arrowup','arrowdown','arrowleft','arrowright','backspace'].includes(k)||/^[a-z0-9]$/.test(k))e.preventDefault();
   if(k==='shift')shift=true;
   if(modalS||paused||!$('#title').classList.contains('hidden')){if(k==='enter'||k==='escape')e.preventDefault();if(document.activeElement&&document.activeElement.tagName==='BUTTON')document.activeElement.blur();}
   if(modalS){modalKey(k);return;}
   if(!$('#title').classList.contains('hidden')){titleKey(k);return;}
   if(paused){pauseKey(k);return;}
   if(P.dead){if(k==='enter')respawn();return;}
-  if(dlg){if(['arrowleft','arrowright','arrowup','arrowdown','tab'].includes(k)){dlg.i=1-dlg.i;drawDlg();}if(k==='enter')confirmDlg();if(k==='escape')closeDlg();return;}
+  if(dlg){if(['arrowleft','arrowright','arrowup','arrowdown','tab','a','d','w','s'].includes(k)){dlg.i=1-dlg.i;drawDlg();}if(k==='enter'||k===' ')confirmDlg();if(k==='escape')closeDlg();return;}
   if(activePanel==='inv'&&k==='v'&&!menu){openSellAll();return;}
   if(menu){if(k==='arrowup'||k==='arrowleft'){menu.i=(menu.i+2)%3;drawMenu();}if(k==='arrowdown'||k==='arrowright'){menu.i=(menu.i+1)%3;drawMenu();}if(k==='enter')confirmMenu();if(k==='escape'){closeMenu();navUI();}return;}
   if(activePanel==='tree'&&k==='r'){panelKey(k);return;}
