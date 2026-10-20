@@ -314,7 +314,7 @@ function sellItem(id){const it=P.inv.find(i=>i.id===id);if(!it)return 'none';P.i
 const expensive=c=>c>=Math.max(150,P.gold*0.25);
 // ---- shop UI ----
 const SHOPSTATE={col:0,i:0,qty:1,pot:0};
-function openShop(id){['inv','char','tree'].forEach(i=>$('#'+i).classList.add('hidden'));hideTip();closeMenu();closeDlg();shop=id;SHOPSTATE.col=0;SHOPSTATE.i=0;SHOPSTATE.qty=1;SHOPSTATE.pot=0;$('#shop').classList.remove('hidden');activePanel='shop';renderShop();ui();}
+function openShop(id){['inv','char','tree'].forEach(i=>$('#'+i).classList.add('hidden'));hideTip();closeMenu();closeDlg();shop=id;SHOPSTATE.col=0;SHOPSTATE.i=0;SHOPSTATE.qty=1;SHOPSTATE.pot=0;if(id==='smith'){const L=SLOTS.map(x=>x[0]);let k=L.indexOf('weapon');if(k<0||!P.eq.weapon)k=L.findIndex(x=>P.eq[x]);SHOPSTATE.i=Math.max(0,k);}$('#shop').classList.remove('hidden');activePanel='shop';renderShop();ui();}
 function closeShop(){if(!shop)return;shop=null;$('#shop').classList.add('hidden');hideTip();if(activePanel==='shop')activePanel=null;}
 function statLines(it){const L=[];if(it.dmg)L.push(['Damage',`${it.dmg[0]}-${it.dmg[1]}`,(it.dmg[0]+it.dmg[1])/2]);if(it.ar)L.push(['Defense',it.ar,it.ar]);for(const k in it.a)L.push([AFF[k]?AFF[k][0]:k,it.a[k],it.a[k]]);return L;}
 function shopList(){if(shop==='smith')return SLOTS.map(([s,n])=>({slot:s,label:n,it:P.eq[s]}));if(shop==='trader')return SHOPSTATE.col===0?merchStock.map((it,i)=>({idx:i,it})):P.inv.map(it=>({id:it.id,it}));return ['hp','mp'].map(k=>({pot:k}));}
